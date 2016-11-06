@@ -2,7 +2,7 @@
 using System.Collections;
 
 public class PointAndClick : MonoBehaviour {
-
+/*
     // variable to hold item
     private GameObject heldObj;
 
@@ -168,4 +168,5 @@ public class PointAndClick : MonoBehaviour {
         
 	
 	}
+    */
 }
