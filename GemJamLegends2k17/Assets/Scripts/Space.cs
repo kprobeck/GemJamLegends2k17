@@ -5,6 +5,12 @@ public class Space : MonoBehaviour {
 
     public int x;
     public int y;
+    public bool p1Spawn;
+    public bool p2Spawn;
+    public bool active;
+    public bool hasGem;
+    public bool gemSpot;
+    public bool gemCapped;
     public int getX
     {
         get
