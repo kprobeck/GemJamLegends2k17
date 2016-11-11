@@ -9,6 +9,7 @@ public class PlayerScript : MonoBehaviour
     public bool isTurn;
     public int playerNum;
     GameManager gameMan;
+    boardManager boardMan;
     private bool prevTurn;
     Unit type;
 
@@ -18,12 +19,15 @@ public class PlayerScript : MonoBehaviour
         //populate units array with runners, brutes, and specials of faction type
         //3 runners, 2 brutes, 1 special
         //boardManager.Spaces[0,0]
-        units[0] = new Unit(Space(0, 0), faction, type.Type.runner); //runner 1
-        units[1] = new Unit(Space(0, 4), faction, type.Type.runner); //runner 2
-        units[2] = new Unit(Space(0, 8), faction, type.Type.runner); //runner 3
-        units[3] = new Unit(Space(1, 3), faction, type.Type.brute); //brute 1
-        units[4] = new Unit(Space(1, 6), faction, type.Type.brute); //brute 2
-        units[5] = new Unit(Space(1, 4), faction, type.Type.special); //special
+        units[0] = new Unit(boardMan.spaces[0, 0], faction, Type.Runner);
+        units[1] = new Unit(boardMan.spaces[0, 0], faction, Type.Runner);
+        units[2] = new Unit(boardMan.spaces[0, 0], faction, Type.Runner);
+
+        //units[0] = new Unit(Space(0, 0), faction, type.Type.runner); //runner 1
+        //units[1] = new Unit(Space(0, 4), faction, type.Type.runner); //runner 2
+        units[3] = new Unit(boardMan.spaces[0, 0], faction, Type.Brute);
+        units[4] = new Unit(boardMan.spaces[0, 0], faction, Type.Brute);
+        units[5] = new Unit(boardMan.spaces[0, 0], faction, Type.Special);
         prevTurn = false;
     }
 
@@ -51,7 +55,7 @@ public class PlayerScript : MonoBehaviour
             //if none are left, call endTurn()
             for (int i = 0; i < units.Length; i++)
             {
-                if (units[i].active == true)
+                if (units[i].IsKOed == false)
                 {
                     break;
                 }

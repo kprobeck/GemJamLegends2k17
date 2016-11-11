@@ -9,6 +9,7 @@ public class GameManager : MonoBehaviour
     //   public GameObject restartButton;
     bool endGame;
     public bool unlockLock = false;
+    public int currentPlayer;
 
     //made getter for private endGame attribute
     //used in LockScript to determine if animation should be played
