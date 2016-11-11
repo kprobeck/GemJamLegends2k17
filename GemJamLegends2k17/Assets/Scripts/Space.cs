@@ -3,8 +3,14 @@ using System.Collections;
 
 public class Space : MonoBehaviour {
 
-    private int x;
-    private int y;
+    public int x;
+    public int y;
+    public bool p1Spawn;
+    public bool p2Spawn;
+    public bool active;
+    public bool hasGem;
+    public bool gemSpot;
+    public bool gemCapped;
     public int getX
     {
         get
