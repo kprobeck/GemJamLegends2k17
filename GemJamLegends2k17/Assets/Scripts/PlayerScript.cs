@@ -3,10 +3,11 @@ using System.Collections;
 
 public class PlayerScript : MonoBehaviour {
 
-    //public Faction faction;
-    //public Unit[] units;
+    public Faction faction;
+    public Unit[] units;
     public bool isTurn;
-
+    public Space[] capPoints;
+    public int playerNum;
 	// Use this for initialization
 	void Start () {
 	    //populate units array with runners, brutes, and specials of faction type
