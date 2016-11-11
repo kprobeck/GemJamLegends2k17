@@ -99,5 +99,10 @@ public class boardManager : MonoBehaviour {
         return adjacentSpots;
     }
     
-
+    public Space RandomAdjacentSpace(Space center)
+    {
+        Space[] spaces = adjacentUnits(center);
+        int i = Random.Range(0, spaces.Length);
+        return spaces[i];
+    }
 }
