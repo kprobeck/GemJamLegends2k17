@@ -10,6 +10,7 @@ public class InputManager : MonoBehaviour {
     private int yPos;
     private bool selected;
     public boardManager board;
+    private Space selectedSpace;
     public GameManager game;
     private ArrayList usedUnits = new ArrayList();
     private const int NUM_UNITS = 6;
@@ -24,7 +25,9 @@ public class InputManager : MonoBehaviour {
         yPos = 0;
         selected = false;
         usedUnits.Clear();
-}
+        selectedSpace = board.spaces[xPos, yPos];
+        selectedSpace.GetComponent<Renderer>().material = Resources.Load("Green", typeof(Material)) as Material;
+    }
 	
 	// Update is called once per frame
 	void Update () {
@@ -37,12 +40,13 @@ public class InputManager : MonoBehaviour {
         //check if its player 1's turn
         if (board.activePlayer == 1)
         {
-            //han
+            //runs for if it is player 1's turn to handle their actions
             player1Turn();
         }
 
         if (board.activePlayer == 2)
         {
+            //runs for if it is player 1's turn to handle their actions
             player2Turn();
         }
     }
@@ -190,6 +194,7 @@ public class InputManager : MonoBehaviour {
             Debug.Log(message1 + "2" + message2 + "Left/Right");
             stickInUse = true;
             Debug.Log("X Value: " + Input.GetAxis("Left/RightP2"));
+            moveSelectedSpace((int)Input.GetAxis("Left/RightP2"), 0);
         }
 
         //If you press Up or Down
@@ -231,6 +236,14 @@ public class InputManager : MonoBehaviour {
     void getPrev()
     {
 
+    }
+
+    //still working
+    void moveSelectedSpace(int xChange, int yChange)
+    {
+        //selectedSpace.GetComponent<Renderer>().material = Resources.Load("sand_2", typeof(Material)) as Material;
+        //selectedSpace = board.spaces[xPos, yPos];
+        //selectedSpace.GetComponent<Renderer>().material = Resources.Load("Green", typeof(Material)) as Material;
     }
 
     void endTurn()
