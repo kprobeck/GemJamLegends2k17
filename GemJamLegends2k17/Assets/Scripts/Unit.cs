@@ -386,32 +386,32 @@ public class Unit : MonoBehaviour
     }
 
     //Does Ability specific to units of each Faction
-    public void Ability(Space selected)
+    public void Ability(Space selectedSpace)
     {
         if (abilityUsed)
             return;
         switch(this.uType)
         {
             case Type.Runner:
-                RunnerAbility(selected);
+                RunnerAbility(selectedSpace);
                 break;
             case Type.Brute:
-                BruteAbility(selected);
+                BruteAbility(selectedSpace);
                 break;
             case Type.Special:
-                SpecialAbility(selected);
+                SpecialAbility(selectedSpace);
                 break;
         }
     }
 
-    private void RunnerAbility(Space selected)
+    private void RunnerAbility(Space selectedSpace)
     {
         switch(this.fact)
         {
             case Faction.FunGuys:
-                if(ActionPossible(selected, 2) && selected.isOccupied)
+                if(ActionPossible(selectedSpace, 2) && selectedSpace.isOccupied)
                 {
-                    Unit other = selected.getOccupier.GetComponent<Unit>();
+                    Unit other = selectedSpace.getOccupier.GetComponent<Unit>();
                     if(other.Fact != Faction.FunGuys)
                     {
                         if(other.Movement == other.StartingMove)
@@ -423,9 +423,9 @@ public class Unit : MonoBehaviour
                 }
                 break;
             case Faction.SnowMen:
-                if(ActionPossible(selected, 2) && selected.isOccupied)
+                if(ActionPossible(selectedSpace, 2) && selectedSpace.isOccupied)
                 {
-                    Unit other = selected.getOccupier.GetComponent<Unit>();
+                    Unit other = selectedSpace.getOccupier.GetComponent<Unit>();
                     if(!other.IsKOed)
                     {
                         other.TakeDamage(1);
@@ -436,13 +436,13 @@ public class Unit : MonoBehaviour
         }
     }
 
-    private void BruteAbility(Space selected)
+    private void BruteAbility(Space selectedSpace)
     {
         switch(this.fact)
         {
             case Faction.FunGuys:
-                int spaceX = selected.getX;
-                int spaceY = selected.getY;
+                int spaceX = selectedSpace.getX;
+                int spaceY = selectedSpace.getY;
                 if(spaceX != xPos && spaceY == yPos)
                 {
                     if (spaceX > xPos)
@@ -497,9 +497,78 @@ public class Unit : MonoBehaviour
         }
     }
 
-    private void SpecialAbility(Space selected)
+    private void SpecialAbility(Space selectedSpace)
     {
-
+        switch(this.fact)
+        {
+            case Faction.FunGuys:
+                Space[] spaces = board.adjacentAndDiagUnits(selectedSpace);
+                for(int i = 0; i < spaces.Length; i++)
+                {
+                    if(spaces[i].isOccupied)
+                    {
+                        Unit en = spaces[i].getOccupier.GetComponent<Unit>();
+                        en.TakeDamage(en.HP);
+                    }
+                }
+                break;
+            case Faction.SnowMen:
+                if(ActionPossible(selectedSpace, 2))
+                {
+                    int spaceX = selectedSpace.getX;
+                    int spaceY = selectedSpace.getY;
+                    //Not on diagonal, x has changed
+                    if(xPos != spaceX && yPos == spaceY)
+                    {
+                        //Direction is right
+                        if(xPos < spaceX)
+                        {
+                            //Damages units up to two spaces away to the right
+                            for(int i = xPos; i < xPos + 2 || i < 9; i++)
+                            {
+                                if (board.spaces[i, yPos].isOccupied)
+                                    board.spaces[i, yPos].getOccupier.GetComponent<Unit>().TakeDamage(1);
+                            }
+                        }
+                        else //Direction is left
+                        {
+                            //Damages units up to two spaces away
+                            for (int i = xPos; i > xPos - 2 || i > 0; i--)
+                            {
+                                if (board.spaces[i, yPos].isOccupied)
+                                    board.spaces[i, yPos].getOccupier.GetComponent<Unit>().TakeDamage(1);
+                            }
+                        }
+                        Move(selectedSpace);
+                        abilityUsed = true;
+                    }
+                    else if(xPos == spaceX && yPos != spaceY) //Not on diagonal, y has changed
+                    {
+                        //Direction is down
+                        if (yPos < spaceY)
+                        {
+                            //Damages units up to two spaces away to the right
+                            for (int i = yPos; i < yPos + 2 || i < 9; i++)
+                            {
+                                if (board.spaces[xPos, i].isOccupied)
+                                    board.spaces[xPos, i].getOccupier.GetComponent<Unit>().TakeDamage(1);
+                            }
+                        }
+                        else //Direction is up
+                        {
+                            //Damages units up to two spaces away
+                            for (int i = yPos; i > yPos - 2 || i > 0; i--)
+                            {
+                                if (board.spaces[xPos, i].isOccupied)
+                                    board.spaces[xPos, i].getOccupier.GetComponent<Unit>().TakeDamage(1);
+                            }
+                        }
+                        Move(selectedSpace);
+                        abilityUsed = true;
+                    }
+                }
+                break;
+        }
     }
 
     // Use this for initialization

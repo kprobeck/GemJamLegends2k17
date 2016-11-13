@@ -78,12 +78,12 @@ public class boardManager : MonoBehaviour {
             parser.Add(spaces[x, y - 1]);
             counter++;
         }
-        if (x + 1 > 8)
+        if (x + 1 < 8)
         {
             parser.Add(spaces[x + 1, y]);
             counter++;
         }
-        if (y + 1 > 8)
+        if (y + 1 < 8)
         {
             parser.Add(spaces[x, y + 1]);
             counter++;
@@ -98,7 +98,71 @@ public class boardManager : MonoBehaviour {
 
         return adjacentSpots;
     }
-    
+    public Space[] adjacentAndDiagUnits(Space center)
+    {
+        Space[] adjacentSpots;
+        ArrayList parser = new ArrayList();
+        int counter = 0;
+        int x = center.x;
+        int y = center.y;
+
+        if (x - 1 > 0)
+        {
+            parser.Add(spaces[x - 1, y]);
+            counter++;
+            if(y - 1 > 0)
+            {
+                parser.Add(spaces[x - 1, y - 1]);
+                counter++;
+
+            }
+            if (y + 1 < 8)
+            {
+                parser.Add(spaces[x-1, y+1]);
+                counter++;
+
+            }
+        }
+        if (y - 1 > 0)
+        {
+            parser.Add(spaces[x, y - 1]);
+            counter++;
+        }
+        if (x + 1 < 8)
+        {
+            parser.Add(spaces[x + 1, y]);
+            counter++;
+            if (y - 1 > 0)
+            {
+                parser.Add(spaces[x - 1, y - 1]);
+                counter++;
+
+            }
+            if (y + 1 < 8)
+            {
+                parser.Add(spaces[x - 1, y + 1]);
+                counter++;
+
+            }
+        }
+        if (y + 1 < 8)
+        {
+            parser.Add(spaces[x, y + 1]);
+            counter++;
+        }
+
+        adjacentSpots = new Space[counter];
+        for (int i = 0; i < parser.Capacity - 1; i++)
+        {
+            Space s = parser[i] as Space;
+            adjacentSpots[i] = s;
+        }
+
+        return adjacentSpots;
+    }
+
+
+
     public Space RandomAdjacentSpace(Space center)
     {
         Space[] spaces = adjacentUnits(center);
