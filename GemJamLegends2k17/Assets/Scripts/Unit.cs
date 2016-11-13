@@ -17,7 +17,7 @@ public enum Type
 public class Unit : MonoBehaviour
 {
 
-    protected int hp, maxKO, dex, move, xPos, yPos, koturn;
+    protected int hp, maxKO, dex, move, startingMove, xPos, yPos, koturn;
     protected bool isMoved = false, abilityUsed = false, gemHeld = false, isKOed = false, selected = false;
     protected Space currSpace;
     private Faction fact;
@@ -48,11 +48,13 @@ public class Unit : MonoBehaviour
                     dex = 2;
                 }
                 move = 3;
+                startingMove = 3;
                 break;
             case Type.Brute:
                 hp = 6;
                 maxKO = 2;
                 dex = 1;
+                startingMove = 2;
                 move = 2;
                 break;
             case Type.Special:
@@ -68,6 +70,7 @@ public class Unit : MonoBehaviour
                     maxKO = 3;
                     dex = 0;
                 }
+                startingMove = 2;
                 move = 2;
                 break;
         }
@@ -111,6 +114,14 @@ public class Unit : MonoBehaviour
         set
         {
             move = value;
+        }
+    }
+
+    public int StartingMove
+    {
+        get
+        {
+            return startingMove;
         }
     }
 
@@ -254,50 +265,36 @@ public class Unit : MonoBehaviour
         }
     }
 
-    //Takes an adjacent enemy Unit as parameter and deals damage to them
+    //Finds adjacent enemies and deals damage to them
     public void Attack()
     {
-        /*Space spaceToCheck;
-        if(xPos - 1 >= 0)
+        Space[] spaces = board.adjacentUnits(this.currSpace);
+        for(int i = 0; i < spaces.Length; i++)
         {
-            spaceToCheck = board.spaces[xPos - 1, yPos];
-            if (spaceToCheck.isOccupied)
+            if(spaces[i].isOccupied)
             {
-                spaceToCheck.getOccupier.GetComponent<Unit>().TakeDamage();
+                spaces[i].getOccupier.GetComponent<Unit>().TakeDamage(1);
             }
         }
-        if(yPos - 1 >= 0)
-        {
-            spaceToCheck = board.spaces[xPos, yPos - 1];
-            if (spaceToCheck.isOccupied)
-            {
-                spaceToCheck.getOccupier.GetComponent<Unit>().TakeDamage();
-            }
-        }
-        if (xPos + 1 >= 0)
-        {
-            spaceToCheck = board.spaces[xPos + 1, yPos];
-            if (spaceToCheck.isOccupied)
-            {
-                spaceToCheck.getOccupier.GetComponent<Unit>().TakeDamage();
-            }
-        }
-        if (yPos + 1 >= 0)
-        {
-            spaceToCheck = board.spaces[xPos, yPos + 1];
-            if (spaceToCheck.isOccupied)
-            {
-                spaceToCheck.getOccupier.GetComponent<Unit>().TakeDamage();
-            }
-        }*/
     }
 
     public void TakeDamage(int dam)
     {
         hp -= dam;
-        if (hp == 0)
+        if (hp <= 0)
         {
             isKOed = true;
+            if(gemHeld)
+            {
+                this.gemHeld = false;
+                this.currSpace.hasGem = false;
+                Space land = board.RandomAdjacentSpace(currSpace);
+                land.hasGem = true;
+                if(land.isOccupied)
+                {
+                    land.getOccupier.GetComponent<Unit>().GemHeld = true;
+                }
+            }
         }
     }
 
@@ -314,31 +311,53 @@ public class Unit : MonoBehaviour
 
     //Passes gem to teammate
     //Takes teammate as parameter other
-    //Returns true if pass successful, false if unsuccessful
+    //Returns true if gem leaves this unit's possession, false if it doesn't
     public bool Pass(Unit other)
     {
         if (other.Fact != this.fact)
         {
+            this.gemHeld = false;
+            this.currSpace.hasGem = false;
             other.TakeDamage(2);
-            //Gem falls on random space
-            //Waiting on RandomAdjacentSpace method in boardManager
+            Space land = board.RandomAdjacentSpace(other.CurrSpace);
+            land.hasGem = true;
+            if(land.isOccupied)
+            {
+                land.getOccupier.GetComponent<Unit>().GemHeld = true;
+            }
         }
         else
         {
             if (other.AbilityUsed)
                 return false;
+            this.gemHeld = false;
+            this.currSpace.hasGem = false;
             if (other.XPos == this.xPos + 1 || other.XPos == this.xPos - 1 || other.YPos == this.yPos + 1 || other.YPos == this.yPos - 1)
-                return true;
+            {
+                other.GemHeld = true;
+                other.CurrSpace.hasGem = true;
+            }
             else
             {
                 other.AbilityUsed = true;
                 int succRate = Random.Range(0, (other.Dex + 7));
                 if (succRate >= 5)
-                    return true;
-                //Gem falls on random space next to receiver
+                {
+                    other.GemHeld = true;
+                    other.CurrSpace.hasGem = true;
+                }
+                else
+                {
+                    Space land = board.RandomAdjacentSpace(other.CurrSpace);
+                    land.hasGem = true;
+                    if (land.isOccupied)
+                    {
+                        land.getOccupier.GetComponent<Unit>().GemHeld = true;
+                    }
+                }
             }
         }
-        return false;
+        return true;
     }
 
     public bool WakeUp()
@@ -366,8 +385,122 @@ public class Unit : MonoBehaviour
         }
     }
 
-    //Method to be overloaded by children classes
-    virtual public void Ability() { }
+    //Does Ability specific to units of each Faction
+    public void Ability(Space selected)
+    {
+        if (abilityUsed)
+            return;
+        switch(this.uType)
+        {
+            case Type.Runner:
+                RunnerAbility(selected);
+                break;
+            case Type.Brute:
+                BruteAbility(selected);
+                break;
+            case Type.Special:
+                SpecialAbility(selected);
+                break;
+        }
+    }
+
+    private void RunnerAbility(Space selected)
+    {
+        switch(this.fact)
+        {
+            case Faction.FunGuys:
+                if(ActionPossible(selected, 2) && selected.isOccupied)
+                {
+                    Unit other = selected.getOccupier.GetComponent<Unit>();
+                    if(other.Fact != Faction.FunGuys)
+                    {
+                        if(other.Movement == other.StartingMove)
+                        {
+                            other.Movement--;
+                            this.abilityUsed = true;
+                        }
+                    }
+                }
+                break;
+            case Faction.SnowMen:
+                if(ActionPossible(selected, 2) && selected.isOccupied)
+                {
+                    Unit other = selected.getOccupier.GetComponent<Unit>();
+                    if(!other.IsKOed)
+                    {
+                        other.TakeDamage(1);
+                        this.abilityUsed = true;
+                    }
+                }
+                break;
+        }
+    }
+
+    private void BruteAbility(Space selected)
+    {
+        switch(this.fact)
+        {
+            case Faction.FunGuys:
+                int spaceX = selected.getX;
+                int spaceY = selected.getY;
+                if(spaceX != xPos && spaceY == yPos)
+                {
+                    if (spaceX > xPos)
+                    {
+                        for (int i = xPos; i < 9; i++)
+                        {
+                            if (board.spaces[i, yPos].isOccupied)
+                            {
+                                board.spaces[i, yPos].getOccupier.GetComponent<Unit>().TakeDamage(1);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for (int i = xPos; i > 0; i--)
+                        {
+                            if (board.spaces[i, yPos].isOccupied)
+                            {
+                                board.spaces[i, yPos].getOccupier.GetComponent<Unit>().TakeDamage(1);
+                            }
+                        }
+                    }
+                    abilityUsed = true;
+                }
+                else if(spaceX == xPos && spaceY != yPos)
+                {
+                    if(spaceY > yPos)
+                    {
+                        for (int i = yPos; i < 9; i++)
+                        {
+                            if (board.spaces[xPos, i].isOccupied)
+                            {
+                                board.spaces[xPos, i].getOccupier.GetComponent<Unit>().TakeDamage(1);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for (int i = yPos; i > 0; i--)
+                        {
+                            if (board.spaces[xPos, i].isOccupied)
+                            {
+                                board.spaces[xPos, i].getOccupier.GetComponent<Unit>().TakeDamage(1);
+                            }
+                        }
+                    }
+                    abilityUsed = true;
+                }
+                break;
+            case Faction.SnowMen:
+                break;
+        }
+    }
+
+    private void SpecialAbility(Space selected)
+    {
+
+    }
 
     // Use this for initialization
     void Start()
