@@ -10,6 +10,8 @@ public class GameManager : MonoBehaviour
     bool endGame;
     public bool unlockLock = false;
     public int currentPlayer;
+    public PlayerScript p1;
+    public PlayerScript p2;
 
     //made getter for private endGame attribute
     //used in LockScript to determine if animation should be played
@@ -30,5 +32,24 @@ public class GameManager : MonoBehaviour
     void Update()
     {
 
+    }
+
+    public bool finishTurn()
+    {
+        if (currentPlayer == 1)
+        {
+            p1.isTurn = false;
+            p2.isTurn = true;
+            ++currentPlayer;
+            return true;
+        }
+        if (currentPlayer == 2)
+        {
+            p1.isTurn = false;
+            p2.isTurn = true;
+            --currentPlayer;
+            return true;
+        }
+        return false;
     }
 }
