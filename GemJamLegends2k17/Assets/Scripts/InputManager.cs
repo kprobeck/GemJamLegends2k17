@@ -25,7 +25,7 @@ public class InputManager : MonoBehaviour {
         yPos = 0;
         selected = false;
         usedUnits.Clear();
-        selectedSpace = board.spaces[xPos, yPos];
+        selectedSpace = board.spaces[xPos*9 + yPos];
         selectedSpace.GetComponent<Renderer>().material = Resources.Load("Green", typeof(Material)) as Material;
     }
 	

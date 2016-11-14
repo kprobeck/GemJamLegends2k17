@@ -4,13 +4,13 @@ using System.Collections;
 public class boardManager : MonoBehaviour {
 
     public GameObject[] children;
-    public Space[,] spaces;
+    public Space[] spaces;
     public int activePlayer;
     public bool isPaused;
     public bool bothCapped;
 	// Use this for initialization
 	void Start () {
-        spaces = new Space[9,9];
+      //  spaces = new Space[81];
         isPaused = false;
 
 	}
@@ -30,10 +30,10 @@ public class boardManager : MonoBehaviour {
         {
             for (int j = 0; j < 9; j++)
             {
-                if (spaces[i, j].tag == "Occupied")
+                if (spaces[i*9 + j].tag == "Occupied")
                 {
                     counter++;
-                    ret.Add(spaces[i, j]);
+                    ret.Add(spaces[i*9 + j]);
                 }
             }
         }
@@ -70,22 +70,22 @@ public class boardManager : MonoBehaviour {
 
         if (x - 1 > 0)
         {
-            parser.Add(spaces[x - 1, y]);
+            parser.Add(spaces[(x-1)*9+y]);
             counter++;
         }
         if(y - 1 > 0)
         {
-            parser.Add(spaces[x, y - 1]);
+            parser.Add(spaces[(x - 0) * 9 + (y - 1)]);
             counter++;
         }
         if (x + 1 < 8)
         {
-            parser.Add(spaces[x + 1, y]);
+            parser.Add(spaces[(x +1) * 9 + (y - 0)]);
             counter++;
         }
         if (y + 1 < 8)
         {
-            parser.Add(spaces[x, y + 1]);
+            parser.Add(spaces[(x + 0) * 9 + (y + 1)]);
             counter++;
         }
 
@@ -106,49 +106,53 @@ public class boardManager : MonoBehaviour {
         int x = center.x;
         int y = center.y;
 
+
+
         if (x - 1 > 0)
         {
-            parser.Add(spaces[x - 1, y]);
+            parser.Add(spaces[(x - 1) * 9 + y]);
             counter++;
-            if(y - 1 > 0)
+            if (y - 1 > 0)
             {
-                parser.Add(spaces[x - 1, y - 1]);
+                parser.Add(spaces[(x - 1)*9+ (y - 1)]);
                 counter++;
 
             }
             if (y + 1 < 8)
             {
-                parser.Add(spaces[x-1, y+1]);
+                parser.Add(spaces[(x - 1)*9+ (y + 1)]);
                 counter++;
 
             }
-        }
+        
+    }
         if (y - 1 > 0)
         {
-            parser.Add(spaces[x, y - 1]);
+            parser.Add(spaces[(x - 0) * 9 + (y - 1)]);
             counter++;
         }
         if (x + 1 < 8)
         {
-            parser.Add(spaces[x + 1, y]);
+            parser.Add(spaces[(x + 1) * 9 + (y - 0)]);
             counter++;
             if (y - 1 > 0)
             {
-                parser.Add(spaces[x - 1, y - 1]);
+                parser.Add(spaces[(x - 1) * 9 + (y - 1)]);
                 counter++;
 
             }
             if (y + 1 < 8)
             {
-                parser.Add(spaces[x - 1, y + 1]);
+                parser.Add(spaces[(x - 1) * 9 + (y + 1)]);
                 counter++;
 
             }
         }
         if (y + 1 < 8)
         {
-            parser.Add(spaces[x, y + 1]);
+            parser.Add(spaces[(x + 0) * 9 + (y + 1)]);
             counter++;
+
         }
 
         adjacentSpots = new Space[counter];

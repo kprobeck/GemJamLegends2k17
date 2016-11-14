@@ -24,11 +24,14 @@ public class Unit : MonoBehaviour
     private Type uType;
     private boardManager board;
 
-    public Unit(Space starting, Faction group, Type unitType)
+    public void CreateUnit(Space starting, Faction group, Type unitType)
     {
         currSpace = starting;
         xPos = starting.getX;
         yPos = starting.getY;
+        Vector3 pos = starting.transform.position;
+        pos.z = -1;
+        this.transform.position = pos;
         koturn = 0;
         fact = group;
         uType = unitType;
@@ -74,6 +77,7 @@ public class Unit : MonoBehaviour
                 move = 2;
                 break;
         }
+        return;
     }
 
     #region Parameters
@@ -449,9 +453,9 @@ public class Unit : MonoBehaviour
                     {
                         for (int i = xPos; i < 9; i++)
                         {
-                            if (board.spaces[i, yPos].isOccupied)
+                            if (board.spaces[i*9+yPos].isOccupied)
                             {
-                                board.spaces[i, yPos].getOccupier.GetComponent<Unit>().TakeDamage(1);
+                                board.spaces[i*9+ yPos].getOccupier.GetComponent<Unit>().TakeDamage(1);
                             }
                         }
                     }
@@ -459,9 +463,9 @@ public class Unit : MonoBehaviour
                     {
                         for (int i = xPos; i > 0; i--)
                         {
-                            if (board.spaces[i, yPos].isOccupied)
+                            if (board.spaces[i*9+ yPos].isOccupied)
                             {
-                                board.spaces[i, yPos].getOccupier.GetComponent<Unit>().TakeDamage(1);
+                                board.spaces[i*9+ yPos].getOccupier.GetComponent<Unit>().TakeDamage(1);
                             }
                         }
                     }
@@ -473,9 +477,9 @@ public class Unit : MonoBehaviour
                     {
                         for (int i = yPos; i < 9; i++)
                         {
-                            if (board.spaces[xPos, i].isOccupied)
+                            if (board.spaces[xPos*9+ i].isOccupied)
                             {
-                                board.spaces[xPos, i].getOccupier.GetComponent<Unit>().TakeDamage(1);
+                                board.spaces[xPos*9+ i].getOccupier.GetComponent<Unit>().TakeDamage(1);
                             }
                         }
                     }
@@ -483,9 +487,9 @@ public class Unit : MonoBehaviour
                     {
                         for (int i = yPos; i > 0; i--)
                         {
-                            if (board.spaces[xPos, i].isOccupied)
+                            if (board.spaces[xPos*9+ i].isOccupied)
                             {
-                                board.spaces[xPos, i].getOccupier.GetComponent<Unit>().TakeDamage(1);
+                                board.spaces[xPos*9+ i].getOccupier.GetComponent<Unit>().TakeDamage(1);
                             }
                         }
                     }
@@ -526,8 +530,8 @@ public class Unit : MonoBehaviour
                             //Damages units up to two spaces away to the right
                             for(int i = xPos; i < xPos + 2 || i < 9; i++)
                             {
-                                if (board.spaces[i, yPos].isOccupied)
-                                    board.spaces[i, yPos].getOccupier.GetComponent<Unit>().TakeDamage(1);
+                                if (board.spaces[i*9+ yPos].isOccupied)
+                                    board.spaces[i*9+ yPos].getOccupier.GetComponent<Unit>().TakeDamage(1);
                             }
                         }
                         else //Direction is left
@@ -535,8 +539,8 @@ public class Unit : MonoBehaviour
                             //Damages units up to two spaces away
                             for (int i = xPos; i > xPos - 2 || i > 0; i--)
                             {
-                                if (board.spaces[i, yPos].isOccupied)
-                                    board.spaces[i, yPos].getOccupier.GetComponent<Unit>().TakeDamage(1);
+                                if (board.spaces[i*9+ yPos].isOccupied)
+                                    board.spaces[i*9+ yPos].getOccupier.GetComponent<Unit>().TakeDamage(1);
                             }
                         }
                         Move(selectedSpace);
@@ -550,8 +554,8 @@ public class Unit : MonoBehaviour
                             //Damages units up to two spaces away to the right
                             for (int i = yPos; i < yPos + 2 || i < 9; i++)
                             {
-                                if (board.spaces[xPos, i].isOccupied)
-                                    board.spaces[xPos, i].getOccupier.GetComponent<Unit>().TakeDamage(1);
+                                if (board.spaces[xPos*9+ i].isOccupied)
+                                    board.spaces[xPos*9+ i].getOccupier.GetComponent<Unit>().TakeDamage(1);
                             }
                         }
                         else //Direction is up
@@ -559,8 +563,8 @@ public class Unit : MonoBehaviour
                             //Damages units up to two spaces away
                             for (int i = yPos; i > yPos - 2 || i > 0; i--)
                             {
-                                if (board.spaces[xPos, i].isOccupied)
-                                    board.spaces[xPos, i].getOccupier.GetComponent<Unit>().TakeDamage(1);
+                                if (board.spaces[xPos*9+ i].isOccupied)
+                                    board.spaces[xPos*9+ i].getOccupier.GetComponent<Unit>().TakeDamage(1);
                             }
                         }
                         Move(selectedSpace);

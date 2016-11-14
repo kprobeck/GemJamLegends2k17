@@ -5,8 +5,8 @@ public class PlayerScript : MonoBehaviour
 {
 
     public Faction faction;
-    private Unit[] units;
-    
+    private GameObject[] units = new GameObject[6];
+    public int tears;
     public bool isTurn;
     public int playerNum;
     public GameManager gameMan;
@@ -22,17 +22,45 @@ public class PlayerScript : MonoBehaviour
         //populate units array with runners, brutes, and specials of faction type
         //3 runners, 2 brutes, 1 special
         //boardManager.Spaces[0,0]
-        Unit u1 = gameObject.AddComponent <Unit>(); //boardMan.spaces[x1, y1], faction, Type.Runner
-        Unit u2 = gameObject.AddComponent<Unit>();
-        Unit u3 = gameObject.AddComponent<Unit>();
-        Unit u4 = gameObject.AddComponent<Unit>();
-        Unit u5 = gameObject.AddComponent<Unit>();
-        Unit u6 = gameObject.AddComponent<Unit>();
+       // Unit u1 = GameObject.Instantiate(
+        //u1.CreateUnit(boardMan.spaces[x1, y1], faction, Type.Runner);
+    //    GameObject g = new GameObject();
+    //    g.AddComponent<Unit>();
+       // Unit u1 = g;
 
+        GameObject u1 = new GameObject();
+        u1.AddComponent<Unit>();
+        u1.GetComponent<Unit>().CreateUnit(boardMan.spaces[x1*9 + y1],faction,Type.Runner);
 
-        units = new Unit[] { u1, u2, u3, u4, u5, u6 };
+        GameObject u2 = new GameObject();
+        u2.AddComponent<Unit>();
+        u2.GetComponent<Unit>().CreateUnit(boardMan.spaces[x2*9 +  y2], faction, Type.Runner);
+
+        GameObject u3 = new GameObject();
+        u3.AddComponent<Unit>();
+        u3.GetComponent<Unit>().CreateUnit(boardMan.spaces[x3*9+ y3], faction, Type.Runner);
+
+        GameObject u4 = new GameObject();
+        u4.AddComponent<Unit>();
+        u4.GetComponent<Unit>().CreateUnit(boardMan.spaces[x4*9+y4], faction, Type.Runner);
+
+        GameObject u5 = new GameObject();
+        u5.AddComponent<Unit>();
+        u5.GetComponent<Unit>().CreateUnit(boardMan.spaces[x5*9+ y5], faction, Type.Runner);
+
+        GameObject u6 = new GameObject();
+        u6.AddComponent<Unit>();
+        u6.GetComponent<Unit>().CreateUnit(boardMan.spaces[x6*9+ y6], faction, Type.Runner);
+
+        units[0] = u1;
+        units[1] = u2;
+        units[2] = u3;
+        units[3] = u4;
+        units[4] = u5;
+        units[5] = u6;
         //units[0] = u1;//new Unit(boardMan.spaces[x1,y1], faction, Type.Runner);
-        Debug.Log(units[0].XPos + ", " + units[0].YPos);
+        Debug.Log(units[0].GetComponent<Unit>().XPos + ", " + units[0].GetComponent<Unit>().YPos);
+        tears = units.Length;
         //units[1] = new Unit(boardMan.spaces[x2, y2], faction, Type.Runner);
         //units[2] = new Unit(boardMan.spaces[x3, y3], faction, Type.Runner);
         //
@@ -48,7 +76,7 @@ public class PlayerScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Debug.Log(units.Length);
+       // Debug.Log(units.Length);
         if (gameMan.currentPlayer == playerNum)
         {
             isTurn = true;
@@ -62,14 +90,14 @@ public class PlayerScript : MonoBehaviour
         {
             for (int i = 0; i < units.Length; i++)
             {
-                units[i].WakeUp();
+                units[i].GetComponent<Unit>().WakeUp();
             }
 
             //check for active units
             //if none are left, call endTurn()
             for (int i = 0; i < units.Length; i++)
             {
-                if (units[i].IsKOed == false)
+                if (units[i].GetComponent<Unit>().IsKOed == false)
                 {
                     break;
                 }
