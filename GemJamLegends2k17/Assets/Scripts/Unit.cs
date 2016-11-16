@@ -23,8 +23,9 @@ public class Unit : MonoBehaviour
     private Faction fact;
     private Type uType;
     private boardManager board;
-
-    public void CreateUnit(Space starting, Faction group, Type unitType)
+    public int team;
+    public bool koFlag;
+    public void CreateUnit(Space starting, Faction group, Type unitType, int t)
     {
         currSpace = starting;
         xPos = starting.getX;
@@ -35,6 +36,8 @@ public class Unit : MonoBehaviour
         koturn = 0;
         fact = group;
         uType = unitType;
+        team = t;
+        koFlag = false;
         switch (uType)
         {
             case Type.Runner:
@@ -260,12 +263,19 @@ public class Unit : MonoBehaviour
     //Moves the unit
     public void Move(Space moveSpace)
     {
-        if (ActionPossible(moveSpace, move))
+        if (!moveSpace.isOccupied && ActionPossible(moveSpace, move))
         {
+            this.currSpace.isOccupied = false;
             currSpace = moveSpace;
+            moveSpace.isOccupied = true;
             xPos = moveSpace.getX;
             yPos = moveSpace.getY;
             isMoved = true;
+            this.transform.position = new Vector3(moveSpace.transform.position.x, moveSpace.transform.position.y, -1);
+            if (moveSpace.hasGem)
+            {
+                this.gemHeld = true;
+            }
         }
     }
 
@@ -275,7 +285,7 @@ public class Unit : MonoBehaviour
         Space[] spaces = board.adjacentUnits(this.currSpace);
         for(int i = 0; i < spaces.Length; i++)
         {
-            if(spaces[i].isOccupied)
+            if(spaces[i].isOccupied && spaces[i].getOccupier.GetComponent<Unit>().team != team)
             {
                 spaces[i].getOccupier.GetComponent<Unit>().TakeDamage(1);
             }
@@ -287,7 +297,8 @@ public class Unit : MonoBehaviour
         hp -= dam;
         if (hp <= 0)
         {
-            isKOed = true;
+              isKOed = true;
+          //  koFlag = true;
             if(gemHeld)
             {
                 this.gemHeld = false;

@@ -32,6 +32,10 @@ public class Space : MonoBehaviour {
         {
             return occupied;
         }
+        set
+        {
+            occupied = value;
+        }
     }
     private GameObject occupier;
 

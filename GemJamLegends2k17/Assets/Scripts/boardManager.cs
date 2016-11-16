@@ -5,6 +5,7 @@ public class boardManager : MonoBehaviour {
 
     public GameObject[] children;
     public Space[] spaces;
+    public Space selectedSpace;
     public int activePlayer;
     public bool isPaused;
     public bool bothCapped;
@@ -12,7 +13,6 @@ public class boardManager : MonoBehaviour {
 	void Start () {
       //  spaces = new Space[81];
         isPaused = false;
-
 	}
 	
 	// Update is called once per frame

@@ -8,12 +8,12 @@ public class InputManager : MonoBehaviour {
     private bool stickInUse;
     private int xPos;
     private int yPos;
-    private bool selected;
     public boardManager board;
-    private Space selectedSpace;
     public GameManager game;
-    private ArrayList usedUnits = new ArrayList();
+    private bool forceEnd;
     private const int NUM_UNITS = 6;
+    private PlayerScript currPlayer;
+    private bool turnStarted = true;
 
     // Use this for initialization
     void Start () {
@@ -23,31 +23,63 @@ public class InputManager : MonoBehaviour {
         stickInUse = false;
         xPos = 0;
         yPos = 0;
-        selected = false;
-        usedUnits.Clear();
-        selectedSpace = board.spaces[xPos*9 + yPos];
-        selectedSpace.GetComponent<Renderer>().material = Resources.Load("Green", typeof(Material)) as Material;
+        forceEnd = true;
+        currPlayer = game.p1;
+        board.selectedSpace = board.spaces[xPos*9 + yPos];
+        board.selectedSpace.GetComponent<Renderer>().material = Resources.Load("Green", typeof(Material)) as Material;
     }
 	
 	// Update is called once per frame
 	void Update () {
-        if(usedUnits.Count == 6)
-        {
-            Debug.Log("Length is: " + usedUnits.Count);
-            endTurn();
-        }
+        forceEnd = true;
 
         //check if its player 1's turn
         if (board.activePlayer == 1)
         {
+            currPlayer = game.p1;
+            //check if Player 1 has no more moves
+            for (int i = 0; i < NUM_UNITS; i++)
+            {
+                if (game.p1.units[i].GetComponent<Unit>().IsMoved == false)
+                {
+                    forceEnd = false;
+                }
+            }
+
             //runs for if it is player 1's turn to handle their actions
+            if (turnStarted == true)
+            {
+                turnStarted = false;
+                game.p1.units[0].GetComponent<Unit>().Selected = true;
+            }
+            
             player1Turn();
         }
 
         if (board.activePlayer == 2)
         {
+            currPlayer = game.p2;
+            //check if Player 2 has no more moves
+            for (int i = 0; i < NUM_UNITS; i++)
+            {
+                if (game.p2.units[i].GetComponent<Unit>().IsMoved == false)
+                {
+                    forceEnd = false;
+                }
+            }
+
             //runs for if it is player 1's turn to handle their actions
+            if (turnStarted == true)
+            {
+                turnStarted = false;
+                game.p2.units[0].GetComponent<Unit>().Selected = true;
+            }
             player2Turn();
+        }
+
+        if (forceEnd)
+        {
+            endTurn();
         }
     }
 
@@ -59,6 +91,13 @@ public class InputManager : MonoBehaviour {
         //If you press A or X
         if (Input.GetButtonDown("SelectP1"))
         {
+            for (int i = 0; i < NUM_UNITS; i++)
+            {
+                if (currPlayer.units[i].GetComponent<Unit>().Selected == true)
+                {
+                    currPlayer.units[i].GetComponent<Unit>().Move(board.selectedSpace);
+                }
+            }
             Debug.Log(message1 + "1" + message2 + "A");
         }
 
@@ -78,12 +117,14 @@ public class InputManager : MonoBehaviour {
         //If you press Left Bumper or L1
         if (Input.GetButtonDown("Prev UnitP1"))
         {
+            getPrev();
             Debug.Log(message1 + "1" + message2 + "Left Bumper");
         }
 
         //If you press Right Bumper or R1
         if (Input.GetButtonDown("Next UnitP1"))
         {
+            getNext();
             Debug.Log(message1 + "1" + message2 + "Right Bumper");
         }
 
@@ -106,6 +147,7 @@ public class InputManager : MonoBehaviour {
             Debug.Log(message1 + "1" + message2 + "Left/Right");
             stickInUse = true;
             Debug.Log("X Value: " + Input.GetAxis("Left/RightP1"));
+            moveSelectedSpace((int)Input.GetAxis("Left/RightP1"), 0);
         }
 
         //If you press Up or Down
@@ -114,6 +156,7 @@ public class InputManager : MonoBehaviour {
             Debug.Log(message1 + "1" + message2 + "Up/Down");
             stickInUse = true;
             Debug.Log("Y Value: " + Input.GetAxis("Up/DownP1"));
+            moveSelectedSpace(0, (int)Input.GetAxis("Up/DownP1"));
         }
 
         //If you press Left/Right Trigger or L2/R2
@@ -147,6 +190,13 @@ public class InputManager : MonoBehaviour {
         //If you press A or X
         if (Input.GetButtonDown("SelectP2"))
         {
+            for (int i = 0; i < NUM_UNITS; i++)
+            {
+                if (currPlayer.units[i].GetComponent<Unit>().Selected == true)
+                {
+                    currPlayer.units[i].GetComponent<Unit>().Move(board.selectedSpace);
+                }
+            }
             Debug.Log(message1 + "2" + message2 + "A");
         }
 
@@ -166,12 +216,14 @@ public class InputManager : MonoBehaviour {
         //If you press Left Bumper or L1
         if (Input.GetButtonDown("Prev UnitP2"))
         {
+            getPrev();
             Debug.Log(message1 + "2" + message2 + "Left Bumper");
         }
 
         //If you press Right Bumper or R1
         if (Input.GetButtonDown("Next UnitP2"))
         {
+            getNext();
             Debug.Log(message1 + "2" + message2 + "Right Bumper");
         }
 
@@ -203,6 +255,7 @@ public class InputManager : MonoBehaviour {
             Debug.Log(message1 + "2" + message2 + "Up/Down");
             stickInUse = true;
             Debug.Log("Y Value: " + Input.GetAxis("Up/DownP2"));
+            moveSelectedSpace(0, (int)Input.GetAxis("Up/DownP2"));
         }
 
         //If you press Left/Right Trigger or L2/R2
@@ -230,27 +283,79 @@ public class InputManager : MonoBehaviour {
 
     void getNext()
     {
-
+        for (int i = 0; i < NUM_UNITS; i++)
+        {
+            if (currPlayer.units[i].GetComponent<Unit>().Selected == true)
+            {
+                currPlayer.units[i].GetComponent<Unit>().Selected = false;
+                if(i == 5)
+                {
+                    currPlayer.units[0].GetComponent<Unit>().Selected = true;
+                    moveSelectedSpace(currPlayer.units[0].GetComponent<Unit>().XPos - xPos, currPlayer.units[0].GetComponent<Unit>().YPos - yPos);
+                    break;
+                }
+                currPlayer.units[i+1].GetComponent<Unit>().Selected = true;
+                moveSelectedSpace(currPlayer.units[i + 1].GetComponent<Unit>().XPos - xPos, currPlayer.units[i + 1].GetComponent<Unit>().YPos - yPos);
+                Debug.Log(currPlayer.units[i + 1].GetComponent<Unit>().Selected);
+                break;
+            }
+        }
     }
 
     void getPrev()
     {
-
+        for (int i = 0; i < NUM_UNITS; i++)
+        {
+            if (currPlayer.units[i].GetComponent<Unit>().Selected == true)
+            {
+                currPlayer.units[i].GetComponent<Unit>().Selected = false;
+                if (i == 0)
+                {
+                    currPlayer.units[5].GetComponent<Unit>().Selected = true;
+                    moveSelectedSpace(currPlayer.units[5].GetComponent<Unit>().XPos - xPos, currPlayer.units[5].GetComponent<Unit>().YPos - yPos);
+                    break;
+                }
+                currPlayer.units[i - 1].GetComponent<Unit>().Selected = true;
+                moveSelectedSpace(currPlayer.units[i - 1].GetComponent<Unit>().XPos - xPos, currPlayer.units[i - 1].GetComponent<Unit>().YPos - yPos);
+                Debug.Log(currPlayer.units[i - 1].GetComponent<Unit>().Selected);
+                break;
+            }
+        }
     }
 
-    //still working
     void moveSelectedSpace(int xChange, int yChange)
     {
-        //selectedSpace.GetComponent<Renderer>().material = Resources.Load("sand_2", typeof(Material)) as Material;
-        //selectedSpace = board.spaces[xPos, yPos];
-        //selectedSpace.GetComponent<Renderer>().material = Resources.Load("Green", typeof(Material)) as Material;
+        board.selectedSpace.GetComponent<Renderer>().material = Resources.Load("sand_2", typeof(Material)) as Material;
+        xPos += xChange;
+        yPos += yChange;
+
+        if (xPos > 8)
+        {
+            xPos = 8;
+        }
+        if (xPos < 0)
+        {
+            xPos = 0;
+        }
+        if (yPos > 8)
+        {
+            yPos = 8;
+        }
+        if (yPos < 0)
+        {
+            yPos = 0;
+        }
+
+        board.selectedSpace = board.spaces[xPos*9 + yPos];
+        board.selectedSpace.GetComponent<Renderer>().material = Resources.Load("Green", typeof(Material)) as Material;
+        Debug.Log(xPos + ", " + yPos);
     }
 
     void endTurn()
     {
-        usedUnits.Clear();
         Debug.Log("endTurn() called");
         game.finishTurn();
+        turnStarted = true;
         if (board.activePlayer == 1)
         {
             board.activePlayer = 2;
