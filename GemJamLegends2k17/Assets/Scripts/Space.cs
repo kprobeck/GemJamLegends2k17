@@ -11,6 +11,7 @@ public class Space : MonoBehaviour {
     public bool hasGem;
     public bool gemSpot;
     public bool gemCapped;
+
     public int getX
     {
         get

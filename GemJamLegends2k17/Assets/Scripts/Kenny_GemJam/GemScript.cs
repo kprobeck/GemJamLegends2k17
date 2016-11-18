@@ -12,6 +12,7 @@ public class GemScript : MonoBehaviour {
     public Space spawnPoint;
     public Space pos;
     public Space[] caps;
+    public bool gameGem = true; 
 
 	// Use this for initialization
 	void Start () {
@@ -29,7 +30,7 @@ public class GemScript : MonoBehaviour {
 
         // update the Gem's position dependant on the holder's position
 
-        if(pos.GetComponent<Space>().getOccupier != null)
+        if(pos.GetComponent<Space>().getOccupier != null && gameGem)
         {
             //then there is an occupier
             holder = pos.GetComponent<Space>().getOccupier.GetComponent<Unit>();
@@ -58,7 +59,7 @@ public class GemScript : MonoBehaviour {
         {
             for (int i = 0; i < caps.Length; i++)
             {
-                if (caps[i] == pos)
+                if (caps[i] == pos && !caps[i].gemCapped)
                 {
                     Debug.Log("test Cap");
 
@@ -69,7 +70,13 @@ public class GemScript : MonoBehaviour {
                     yPos = spawnPoint.getY;
                     this.transform.position = spawnPoint.transform.position;
                     this.transform.position = new Vector3(this.transform.position.x, this.transform.position.y, -1);
+                    pos.gemCapped = true;
+                    pos = spawnPoint;
                     isHeld = false;
+                    GameObject lGem = Instantiate(Resources.Load("gem") as GameObject, new Vector3(1, 1, 1), new Quaternion(0, 0, 0, 1)) as GameObject;
+                    lGem.transform.position = caps[i].transform.position + new Vector3(0,0,-1);
+                    lGem.transform.localScale = new Vector3(0.7f, 0.7f, 0.7f);
+                    lGem.GetComponent<GemScript>().enabled = false;
                 }
             }
         }

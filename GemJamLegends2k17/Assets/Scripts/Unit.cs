@@ -83,7 +83,7 @@ public class Unit : MonoBehaviour
         return;
     }
 
-    #region Parameters
+    #region Accessors and Mutators
     public int HP
     {
         get
@@ -273,7 +273,7 @@ public class Unit : MonoBehaviour
             yPos = moveSpace.getY;
             isMoved = true;
             moveSpace.occupier = this;
-            this.transform.position = new Vector3(moveSpace.transform.position.x, moveSpace.transform.position.y, -1);
+            this.transform.position = new Vector3(moveSpace.transform.position.x, moveSpace.transform.position.y, -1.1f);
             if (moveSpace.hasGem)
             {
                 this.gemHeld = true;
