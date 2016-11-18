@@ -266,11 +266,13 @@ public class Unit : MonoBehaviour
         if (!moveSpace.isOccupied && ActionPossible(moveSpace, move))
         {
             this.currSpace.isOccupied = false;
+            this.currSpace.occupier = null;
             currSpace = moveSpace;
             moveSpace.isOccupied = true;
             xPos = moveSpace.getX;
             yPos = moveSpace.getY;
             isMoved = true;
+            moveSpace.occupier = this;
             this.transform.position = new Vector3(moveSpace.transform.position.x, moveSpace.transform.position.y, -1);
             if (moveSpace.hasGem)
             {

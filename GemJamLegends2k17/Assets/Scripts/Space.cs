@@ -37,9 +37,9 @@ public class Space : MonoBehaviour {
             occupied = value;
         }
     }
-    private GameObject occupier;
+    public Unit occupier;
 
-    public GameObject getOccupier
+    public Unit getOccupier
     {
         get
         {
@@ -55,10 +55,17 @@ public class Space : MonoBehaviour {
     // Update is called once per frame
     void Update()
     {
-
+        if (isOccupied)
+        {
+            gameObject.tag = "Occupied";
+        }
+        if(!isOccupied)
+        {
+            gameObject.tag = "Unoccupied";
+        }
     }
 
-    public GameObject occupation()
+    public Unit occupation()
     {
         return occupier;
     }

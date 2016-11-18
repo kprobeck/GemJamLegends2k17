@@ -8,10 +8,12 @@ public class GameManager : MonoBehaviour
     public GameObject[] boardChildren;
     //   public GameObject restartButton;
     bool endGame;
+    bool abilityPhase;
     public bool unlockLock = false;
     public int currentPlayer;
     public PlayerScript p1;
     public PlayerScript p2;
+    public GemScript gem;
 
     //made getter for private endGame attribute
     //used in LockScript to determine if animation should be played
@@ -36,11 +38,18 @@ public class GameManager : MonoBehaviour
 
     public bool finishTurn()
     {
+        abilityPhase = !abilityPhase;
         if (currentPlayer == 1)
         {
             p1.isTurn = false;
             p2.isTurn = true;
             ++currentPlayer;
+            foreach (GameObject g in p1.GetComponent<PlayerScript>().units)//int i = 0; i < p1.GetComponent<PlayerScript>().units.Length; i++)
+            {
+                g.GetComponent<Unit>().IsMoved = false;
+                g.GetComponent<Unit>().AbilityUsed = false;
+                g.GetComponent<Unit>().Selected = false;
+            }
             return true;
         }
         if (currentPlayer == 2)
@@ -48,6 +57,12 @@ public class GameManager : MonoBehaviour
             p1.isTurn = false;
             p2.isTurn = true;
             --currentPlayer;
+            foreach (GameObject g in p2.GetComponent<PlayerScript>().units)//int i = 0; i < p1.GetComponent<PlayerScript>().units.Length; i++)
+            {
+                g.GetComponent<Unit>().IsMoved = false;
+                g.GetComponent<Unit>().AbilityUsed = false;
+                g.GetComponent<Unit>().Selected = false;
+            }
             return true;
         }
         return false;

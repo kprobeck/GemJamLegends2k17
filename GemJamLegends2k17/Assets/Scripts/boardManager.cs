@@ -20,12 +20,12 @@ public class boardManager : MonoBehaviour {
 	
 	}
     
-    public GameObject[] occupiedSpaces()
+    public Space[] occupiedSpaces()
     {
         // GameObject [] ret;
         ArrayList ret = new ArrayList();
         int counter = 0;
-        GameObject [] returnArray;
+        Space [] returnArray;
         for(int i = 0; i < 9; i++)
         {
             for (int j = 0; j < 9; j++)
@@ -37,11 +37,11 @@ public class boardManager : MonoBehaviour {
                 }
             }
         }
-        returnArray = new GameObject [counter];
+        returnArray = new Space [counter];
         for(int i = 0; i < ret.Capacity - 1; i++)
         {
             Space s = ret[i] as Space;
-            returnArray[i] = s.getOccupier;
+            returnArray[i] = s;//.getOccupier as GameObject;
         }
 
         return returnArray;
@@ -49,7 +49,7 @@ public class boardManager : MonoBehaviour {
 
     public GameObject[] koedUnits()
     {
-        GameObject [] toParse = occupiedSpaces();
+        Space [] toParse = occupiedSpaces();
         ArrayList parser = new ArrayList();
         for(int i = 0; i < toParse.Length; i++)
         {
