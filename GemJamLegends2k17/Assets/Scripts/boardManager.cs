@@ -90,8 +90,11 @@ public class boardManager : MonoBehaviour {
         }
 
         adjacentSpots = new Space[counter];
-        for (int i = 0; i < parser.Capacity - 1; i++)
+        Debug.Log("Counter: " + counter);
+        Debug.Log("Parser Capacity Minus 1: " + (parser.Capacity - 1));
+        for (int i = 0; i < counter; i++)
         {
+            Debug.Log(i);
             Space s = parser[i] as Space;
             adjacentSpots[i] = s;
         }

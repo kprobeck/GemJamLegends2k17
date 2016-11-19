@@ -46,21 +46,31 @@ public class GameManager : MonoBehaviour
             ++currentPlayer;
             foreach (GameObject g in p1.GetComponent<PlayerScript>().units)//int i = 0; i < p1.GetComponent<PlayerScript>().units.Length; i++)
             {
-                g.GetComponent<Unit>().IsMoved = false;
-                g.GetComponent<Unit>().AbilityUsed = false;
+                if (!g.GetComponent<Unit>().IsKOed)
+                {
+                    g.GetComponent<Unit>().Attack();
+                    g.GetComponent<Unit>().IsMoved = false;
+                    g.GetComponent<Unit>().AbilityUsed = false;
+                }
                 g.GetComponent<Unit>().Selected = false;
             }
             return true;
         }
         if (currentPlayer == 2)
         {
-            p1.isTurn = false;
-            p2.isTurn = true;
+            p1.isTurn = true;
+            p2.isTurn = false;
             --currentPlayer;
+
             foreach (GameObject g in p2.GetComponent<PlayerScript>().units)//int i = 0; i < p1.GetComponent<PlayerScript>().units.Length; i++)
             {
-                g.GetComponent<Unit>().IsMoved = false;
-                g.GetComponent<Unit>().AbilityUsed = false;
+                if (!g.GetComponent<Unit>().IsKOed)
+                {
+                    g.GetComponent<Unit>().Attack();
+                    g.GetComponent<Unit>().IsMoved = false;
+                    g.GetComponent<Unit>().AbilityUsed = false;
+                }
+
                 g.GetComponent<Unit>().Selected = false;
             }
             return true;

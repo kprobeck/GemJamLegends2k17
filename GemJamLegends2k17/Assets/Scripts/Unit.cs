@@ -17,7 +17,8 @@ public enum Type
 public class Unit : MonoBehaviour
 {
 
-    protected int hp, maxKO, dex, move, startingMove, xPos, yPos, koturn;
+    protected int maxHP, maxKO, dex, move, startingMove, xPos, yPos, koturn;
+    public int hp;
     protected bool isMoved = false, abilityUsed = false, gemHeld = false, isKOed = false, selected = false;
     protected Space currSpace;
     private Faction fact;
@@ -44,12 +45,14 @@ public class Unit : MonoBehaviour
                 if (fact == Faction.FunGuys)
                 {
                     hp = 4;
+                    maxHP = hp;
                     maxKO = 3;
                     dex = 1;
                 }
                 else
                 {
                     hp = 3;
+                    maxHP = hp;
                     maxKO = 3;
                     dex = 2;
                 }
@@ -58,6 +61,7 @@ public class Unit : MonoBehaviour
                 break;
             case Type.Brute:
                 hp = 6;
+                maxHP = hp;
                 maxKO = 2;
                 dex = 1;
                 startingMove = 2;
@@ -67,12 +71,14 @@ public class Unit : MonoBehaviour
                 if (fact == Faction.FunGuys)
                 {
                     hp = 3;
+                    maxHP = hp;
                     maxKO = 2;
                     dex = 2;
                 }
                 else
                 {
                     hp = 3;
+                    maxHP = hp;
                     maxKO = 3;
                     dex = 0;
                 }
@@ -300,6 +306,7 @@ public class Unit : MonoBehaviour
         if (hp <= 0)
         {
               isKOed = true;
+            this.transform.rotation = new Quaternion(0, 0, 0.3f, 1);
           //  koFlag = true;
             if(gemHeld)
             {
@@ -383,20 +390,29 @@ public class Unit : MonoBehaviour
         {
             koturn = 0;
             isKOed = false;
+            this.transform.rotation = new Quaternion(0, 0, 0, 1);
+            hp = maxHP;
             return true;
         }
         else
         {
-            int wakeChance = Random.Range(1, 7);
+            int wakeChance = Random.Range(1, 7); 
+            Debug.Log("Wake Chance: " + wakeChance);
             if (wakeChance >= 5)
             {
                 koturn = 0;
-                isKOed = false;
+                isKOed = false; 
+                this.transform.rotation = new Quaternion(0, 0, 0, 1);
+                hp = maxHP;
                 return true;
             }
+
+            // else, keep as KO'ed, can't move or activated abilities this turn
             else
             {
                 koturn++;
+                isMoved = true;
+                abilityUsed = true;
                 return false;
             }
         }
@@ -591,7 +607,7 @@ public class Unit : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-
+        board = GameObject.FindGameObjectWithTag("Board").GetComponent<boardManager>();
     }
 
     // Update is called once per frame
