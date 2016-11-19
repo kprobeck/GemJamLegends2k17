@@ -33,7 +33,17 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // player 1 wins
+        if (gem.GetComponent<GemScript>().caps[1].GetComponent<Space>().gemCapped && gem.GetComponent<GemScript>().caps[3].GetComponent<Space>().gemCapped)
+        {
+            Debug.Log("Player 1 WINS!");
+        }
 
+        // player 2 wins
+        if (gem.GetComponent<GemScript>().caps[0].GetComponent<Space>().gemCapped && gem.GetComponent<GemScript>().caps[2].GetComponent<Space>().gemCapped)
+        {
+            Debug.Log("Player 2 WINS!");
+        }
     }
 
     public bool finishTurn()
@@ -48,7 +58,6 @@ public class GameManager : MonoBehaviour
             {
                 if (!g.GetComponent<Unit>().IsKOed)
                 {
-                    g.GetComponent<Unit>().Attack();
                     g.GetComponent<Unit>().IsMoved = false;
                     g.GetComponent<Unit>().AbilityUsed = false;
                 }
@@ -61,6 +70,14 @@ public class GameManager : MonoBehaviour
             p1.isTurn = true;
             p2.isTurn = false;
             --currentPlayer;
+
+            foreach (GameObject g in p1.GetComponent<PlayerScript>().units)//int i = 0; i < p1.GetComponent<PlayerScript>().units.Length; i++)
+            {
+                if (!g.GetComponent<Unit>().IsKOed)
+                {
+                    g.GetComponent<Unit>().Attack();
+                }
+            }
 
             foreach (GameObject g in p2.GetComponent<PlayerScript>().units)//int i = 0; i < p1.GetComponent<PlayerScript>().units.Length; i++)
             {

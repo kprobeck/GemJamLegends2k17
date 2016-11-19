@@ -29,13 +29,13 @@ public class PlayerScript : MonoBehaviour
         // Unit u1 = g;
 
         //GameObject u1 = new GameObject();
-        GameObject brute = Resources.Load("brutePref") as GameObject;
-        GameObject runner = Resources.Load("runPref") as GameObject;
-        GameObject special = Resources.Load("specPref") as GameObject;
+        GameObject brute = Resources.Load("brutePref" + playerNum) as GameObject;
+        GameObject runner = Resources.Load("runPref" + playerNum) as GameObject;
+        GameObject special = Resources.Load("specPref" + playerNum) as GameObject;
 
         GameObject u1 = Instantiate(runner, new Vector3(1, 1, 1), new Quaternion(0, 0,0, 1)) as GameObject;
      //   u1.AddComponent<Unit>();
-        u1.GetComponent<Unit>().CreateUnit(boardMan.spaces[x1*9 + y1],faction,Type.Runner, playerNum);
+        u1.GetComponent<Unit>().CreateUnit(boardMan.spaces[x1*9 + y1], faction, Type.Runner, playerNum);
         boardMan.spaces[x1 * 9 + y1].occupier = u1.GetComponent<Unit>();
         boardMan.spaces[x1 * 9 + y1].isOccupied = true;
 
