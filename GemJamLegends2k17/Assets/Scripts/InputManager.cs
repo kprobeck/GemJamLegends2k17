@@ -15,12 +15,10 @@ public class InputManager : MonoBehaviour {
     private PlayerScript currPlayer;
     private bool turnStarted = true;
 
-
-
     // Use this for initialization
     void Start () {
         message1 = "The Player ";                               //set message fragments
-        message2 = " Pressed: ";                                //for input debugging
+        message2 = ": Pressed: ";                                //for input debugging
 
         trigDown = false;                                       //makes sure that holding down the trigger doesn't cause constant calls.
         stickInUse = false;                                     //makes sure that holding down the D-Pad doesn't cause constant calls.
@@ -70,8 +68,8 @@ public class InputManager : MonoBehaviour {
                 moveSelectedSpace(currPlayer.units[0].GetComponent<Unit>().XPos - xPos, currPlayer.units[0].GetComponent<Unit>().YPos - yPos);
             }
             
-            //run the player1Turn() function to handle the input of player 1 
-            player1Turn();
+            //run the playerTurn() function to handle the input of player 1 
+            playerTurn();
         }
 
         //check if its player 1's turn
@@ -102,8 +100,8 @@ public class InputManager : MonoBehaviour {
                 moveSelectedSpace(currPlayer.units[0].GetComponent<Unit>().XPos - xPos, currPlayer.units[0].GetComponent<Unit>().YPos - yPos);
             }
 
-            //run the player2Turn() function to handle the input of player 2
-            player2Turn();
+            //run the playerTurn() function to handle the input of player 2
+            playerTurn();
         }
 
         //if the player didn't have a unit still available for action, force their turn to end
@@ -113,6 +111,339 @@ public class InputManager : MonoBehaviour {
         }
     }
 
+    //handles input during either player's turn
+    void playerTurn()
+    {
+        //Xbox then PlayStation
+        //Actual Buttons
+        //If you press A or X
+        if (Input.GetButtonDown("SelectP" + currPlayer.playerNum))
+        {
+            //iterate through to find the selected unit, then move the unit to selected space
+            for (int i = 0; i < NUM_UNITS; i++)
+            {
+                if (currPlayer.units[i].GetComponent<Unit>().Selected == true)
+                {
+                    currPlayer.units[i].GetComponent<Unit>().Move(board.selectedSpace);
+                }
+            }
+
+            //call getNext() for the first time to select the next unit automatically
+            getNext(0);
+            getPossibleMovements();
+
+            //change the texture of the new selectedSpace to be green
+            board.selectedSpace.GetComponent<Renderer>().material = Resources.Load("Green", typeof(Material)) as Material;
+        }
+
+        //If you press B or Circle
+        if (Input.GetButtonDown("BackP" + currPlayer.playerNum))
+        {
+            //No idea what the B button does as of now
+            Debug.Log(message1 + currPlayer.playerNum + message2 + "B");
+        }
+
+        //If you press Y or Triangle
+        if (Input.GetButtonDown("EndP" + currPlayer.playerNum))
+        {
+            //call endTurn() to end the current player's turn
+            Debug.Log(message1 + currPlayer.playerNum + message2 + "Y");
+            endTurn();
+        }
+
+        //If you press Left Bumper or L1
+        if (Input.GetButtonDown("Prev UnitP" + currPlayer.playerNum))
+        {
+            //call getPrev for the first time, makes the selected unit the previous unit in the unit array
+            getPrev(0);
+            getPossibleMovements();
+
+            //change the texture of the new selectedSpace to be green
+            board.selectedSpace.GetComponent<Renderer>().material = Resources.Load("Green", typeof(Material)) as Material;
+        }
+
+        //If you press Right Bumper or R1
+        if (Input.GetButtonDown("Next UnitP" + currPlayer.playerNum))
+        {
+            //call getNext for the first time, makes the selected unit the next unit in the unit array
+            getNext(0);
+            getPossibleMovements();
+
+            //change the texture of the new selectedSpace to be green
+            board.selectedSpace.GetComponent<Renderer>().material = Resources.Load("Green", typeof(Material)) as Material;
+        }
+
+        //If you press Back or Whatever PS calls Back
+        if (Input.GetButtonDown("Game InfoP" + currPlayer.playerNum))
+        {
+            //will display the unit information screen later
+            Debug.Log(message1 + currPlayer.playerNum + message2 + "Back");
+        }
+
+        //If you press Start or Whatever PS calls Start
+        if (Input.GetButtonDown("PauseP" + currPlayer.playerNum))
+        {
+            //will pause the game later
+            Debug.Log(message1 + currPlayer.playerNum + message2 + "Start");
+        }
+
+        //Axises Inputs (Sticks, DPad, Triggers)
+        //If you press Left or Right
+        if (Input.GetAxis("Left/RightP" + currPlayer.playerNum) != 0 && stickInUse == false)
+        {
+            Debug.Log(message1 + currPlayer.playerNum + message2 + "Left /Right");
+
+            //set stickInUse to true so that no other input from the D-Pad can come in until the the D-Pad is released
+            stickInUse = true;
+            Debug.Log("X Value: " + Input.GetAxis("Left/RightP" + currPlayer.playerNum));
+
+            //call moveSelectedSpace so that the selected space moves in the desired direction
+            moveSelectedSpace((int)Input.GetAxis("Left/RightP" + currPlayer.playerNum), 0);
+        }
+
+        //If you press Up or Down
+        if (Input.GetAxis("Up/DownP" + currPlayer.playerNum) != 0 && stickInUse == false)
+        {
+            Debug.Log(message1 + currPlayer.playerNum + message2 + "Up /Down");
+
+            //set stickInUse to true so that no other input from the D-Pad can come in until the the D-Pad is released
+            stickInUse = true;
+            Debug.Log("Y Value: " + Input.GetAxis("Up/DownP" + currPlayer.playerNum));
+
+            //call moveSelectedSpace so that the selected space moves in the desired direction
+            moveSelectedSpace(0, (int)Input.GetAxis("Up/DownP" + currPlayer.playerNum));
+        }
+
+        //If you press Left/Right Trigger or L2/R2
+        if (Input.GetAxis("Char InfoP" + currPlayer.playerNum) != 0 && trigDown == false)
+        {
+            //will display the chatacter's information
+            Debug.Log(message1 + currPlayer.playerNum + ": One or more Triggers down");
+
+            //set trigDown to true so that no other input from the triggers can come in until the the trigger is released
+            trigDown = true;
+        }
+
+        //check for axises reset
+        //Left/Right and Left/Right
+        if (Input.GetAxis("Left/RightP" + currPlayer.playerNum) == 0 && Input.GetAxis("Up/DownP" + currPlayer.playerNum) == 0 && stickInUse == true)
+        {
+            Debug.Log(message1  + currPlayer.playerNum + ": The stick is ready for new input");
+
+            //sets stickInUse to false so it is ready to accept new input
+            stickInUse = false;
+        }
+
+        //Triggers
+        if (Input.GetAxis("Char InfoP" + currPlayer.playerNum) == 0 && trigDown == true)
+        {
+            Debug.Log(message1 + currPlayer.playerNum + ": Triggers ready for new input");
+
+            //sets trigDown to false so it is ready to accept new input
+            trigDown = false;
+        }
+    }
+
+    void getNext(int numCalled)
+    {
+        //if this is the 7th time the method is called in a row, it has gone all the way through all the units in the array and has none that haven't been used, return
+        if(numCalled == 6)
+        {
+            return;
+        }
+
+        //iterate through the array of units to find the selected unit
+        for (int i = 0; i < NUM_UNITS; i++)
+        {
+            if (currPlayer.units[i].GetComponent<Unit>().Selected == true)
+            {
+                //set the current selected unit to false so that we're sure only one unit is selected at a time
+                currPlayer.units[i].GetComponent<Unit>().Selected = false;
+                
+                //if the selected unit is the last one in the array
+                if(i == 5)
+                {
+                    //set the first unit's selected value to true
+                    currPlayer.units[0].GetComponent<Unit>().Selected = true;
+
+                    //if the first unit has already been used, enter a recursive loop to find the next unit that hasn't been moved, then break out
+                    if (currPlayer.units[0].GetComponent<Unit>().IsMoved  == true)
+                    {
+                        getNext(numCalled + 1);
+                        getPossibleMovements();
+                        break;
+                    }
+
+                    //move the selected space to the selected unit's location and break out
+                    moveSelectedSpace(currPlayer.units[0].GetComponent<Unit>().XPos - xPos, currPlayer.units[0].GetComponent<Unit>().YPos - yPos);
+                    break;
+                }
+
+                //if it's not the last, just set the next unit's selected value to true
+                currPlayer.units[i + 1].GetComponent<Unit>().Selected = true;
+
+                //if the next unit has already been used, enter a recursive loop to find the next unit that hasn't been moved, then break out
+                if (currPlayer.units[i + 1].GetComponent<Unit>().IsMoved == true)
+                {
+                    getNext(numCalled + 1);
+                    getPossibleMovements();
+                    break;
+                }
+
+                //move the selected space to the selected unit's location and break out
+                moveSelectedSpace(currPlayer.units[i + 1].GetComponent<Unit>().XPos - xPos, currPlayer.units[i + 1].GetComponent<Unit>().YPos - yPos);
+                break;
+            }
+        }
+    }
+
+    void getPrev(int numCalled)
+    {
+        //if this is the 7th time the method is called in a row, it has gone all the way through all the units in the array and has none that haven't been used, return
+        if (numCalled == 6)
+        {
+            return;
+        }
+
+        //iterate through the units to find the selected unit
+        for (int i = 0; i < NUM_UNITS; i++)
+        {
+            if (currPlayer.units[i].GetComponent<Unit>().Selected == true)
+            {
+
+                //set the current selected unit to false so that we're sure only one unit is selected at a time
+                currPlayer.units[i].GetComponent<Unit>().Selected = false;
+
+                //if the selected unit was the first in the array
+                if (i == 0)
+                {
+                    //set the last unit in the array to have a selected value of true
+                    currPlayer.units[5].GetComponent<Unit>().Selected = true;
+
+                    //if the last unit has already been used, enter a recursive loop to find the previous unit that hasn't been moved, then break out
+                    if (currPlayer.units[5].GetComponent<Unit>().IsMoved == true)
+                    {
+                        getPrev(numCalled + 1);
+                        getPossibleMovements();
+                        break;
+                    }
+
+                    //move the selected space to the selected unit's location and break out
+                    moveSelectedSpace(currPlayer.units[5].GetComponent<Unit>().XPos - xPos, currPlayer.units[5].GetComponent<Unit>().YPos - yPos);
+                    break;
+                }
+
+                //if it's not the last, just set the next unit's selected value to true
+                currPlayer.units[i - 1].GetComponent<Unit>().Selected = true;
+
+                //if the previous unit has already been used, enter a recursive loop to find the next unit that hasn't been moved, then break out
+                if (currPlayer.units[i - 1].GetComponent<Unit>().IsMoved == true)
+                {
+                    getPrev(numCalled + 1);
+                    getPossibleMovements();
+                    break;
+                }
+
+                //move the selected space to the selected unit's location and break out
+                moveSelectedSpace(currPlayer.units[i - 1].GetComponent<Unit>().XPos - xPos, currPlayer.units[i - 1].GetComponent<Unit>().YPos - yPos);
+                break;
+            }
+        }
+    }
+
+    void moveSelectedSpace(int xChange, int yChange)
+    {
+        //change the entire board to be their natural textures and possible movement textures
+        getPossibleMovements();
+
+
+        //add the xChange and yChange values to the xPos and yPos values to move the selected space
+        xPos += xChange;
+        yPos += yChange;
+
+        //check if the xPos or yPos is now outside the board and reset to the number before
+        if (xPos > 8)
+        {
+            xPos = 8;
+        }
+        if (xPos < 0)
+        {
+            xPos = 0;
+        }
+        if (yPos > 8)
+        {
+            yPos = 8;
+        }
+        if (yPos < 0)
+        {
+            yPos = 0;
+        }
+
+        //actually set the selectSpace value to the space at the xPos and yPos
+        board.selectedSpace = board.spaces[xPos*9 + yPos];
+
+        //change the texture of the new selectedSpace to be green
+        board.selectedSpace.GetComponent<Renderer>().material = Resources.Load("Green", typeof(Material)) as Material;
+        Debug.Log(xPos + ", " + yPos);
+    }
+
+    void getPossibleMovements()
+    {
+        //declare a variable to store a Unit value temporarily
+        Unit temp;
+
+        //iterate through to find the selected unit, then move the unit to selected space
+        for (int i = 0; i < NUM_UNITS; i++)
+        {
+            //set the unit to be the temp variable
+            temp = currPlayer.units[i].GetComponent<Unit>();
+
+            //if temp is the selected space
+            if (temp.Selected == true)
+            {
+                //go through all the spaces on the board
+                foreach (Space space in board.spaces)
+                {
+                    //check if the space is available to be moved to
+                    if (temp.ActionPossible(space, temp.Movement))
+                    {
+                        //change the material of the available spaces to yellow
+                        space.GetComponent<Renderer>().material = Resources.Load("Yellow", typeof(Material)) as Material;
+                    }
+                    else
+                    {
+                        //change the material of the available spaces to the neutral texture
+                        space.GetComponent<Renderer>().material = Resources.Load("sand_2", typeof(Material)) as Material;
+                    }
+                }
+            }
+        }
+    }
+
+    void endTurn()
+    {
+        Debug.Log("endTurn() called");
+
+        //call game.finishTurn() to handle all the end of turn operations that InputManager doesn't control
+        game.finishTurn();
+
+        //reset turnStarted so that the start of turn code is run for the next player
+        turnStarted = true;
+
+        //Switch the active player to the alternate player
+        if (board.activePlayer == 1)
+        {
+            board.activePlayer = 2;
+        }
+        else
+        {
+            board.activePlayer = 1;
+        }
+    }
+}
+
+//Old Code No Longer Used
+/*
     //Handles input for Player 1's turn
     void player1Turn()
     {
@@ -366,163 +697,4 @@ public class InputManager : MonoBehaviour {
             trigDown = false;
         }
     }
-
-    void getNext(int numCalled)
-    {
-        //if this is the 6th time the method is called in a row, it has gone all the way through all the units in the array and has none that haven't been used, return
-        if(numCalled == 6)
-        {
-            return;
-        }
-
-        //iterate through the array of units to find the selected unit
-        for (int i = 0; i < NUM_UNITS; i++)
-        {
-            if (currPlayer.units[i].GetComponent<Unit>().Selected == true)
-            {
-                //set the current selected unit to false so that we're sure only one unit is selected at a time
-                currPlayer.units[i].GetComponent<Unit>().Selected = false;
-                
-                //if the selected unit is the last one in the array
-                if(i == 5)
-                {
-                    //set the first unit's selected value to true
-                    currPlayer.units[0].GetComponent<Unit>().Selected = true;
-
-                    //if the first unit has already been used, enter a recursive loop to find the next unit that hasn't been moved, then break out
-                    if (currPlayer.units[0].GetComponent<Unit>().IsMoved  == true)
-                    {
-                        getNext(numCalled + 1);
-                        getPossibleMovements();
-                        break;
-                    }
-
-                    //move the selected space to the selected unit's location and break out
-                    moveSelectedSpace(currPlayer.units[0].GetComponent<Unit>().XPos - xPos, currPlayer.units[0].GetComponent<Unit>().YPos - yPos);
-                    break;
-                }
-
-                //if it's not the last, just set the next unit's selected value to true
-                currPlayer.units[i + 1].GetComponent<Unit>().Selected = true;
-
-                //if the next unit has already been used, enter a recursive loop to find the next unit that hasn't been moved, then break out
-                if (currPlayer.units[i + 1].GetComponent<Unit>().IsMoved == true)
-                {
-                    getNext(numCalled + 1);
-                    getPossibleMovements();
-                    break;
-                }
-
-                //move the selected space to the selected unit's location and break out
-                moveSelectedSpace(currPlayer.units[i + 1].GetComponent<Unit>().XPos - xPos, currPlayer.units[i + 1].GetComponent<Unit>().YPos - yPos);
-                break;
-            }
-        }
-    }
-
-    void getPrev(int numCalled)
-    {
-        //if this is the 6th time the method is called in a row, it has gone all the way through all the units in the array and has none that haven't been used, return
-        if (numCalled == 5)
-        {
-            return;
-        }
-        for (int i = 0; i < NUM_UNITS; i++)
-        {
-            if (currPlayer.units[i].GetComponent<Unit>().Selected == true)
-            {
-                currPlayer.units[i].GetComponent<Unit>().Selected = false;
-                if (i == 0)
-                {
-                    currPlayer.units[5].GetComponent<Unit>().Selected = true;
-                    if (currPlayer.units[5].GetComponent<Unit>().IsMoved == true)
-                    {
-                        getPrev(numCalled + 1);
-                        getPossibleMovements();
-                        break;
-                    }
-                    moveSelectedSpace(currPlayer.units[5].GetComponent<Unit>().XPos - xPos, currPlayer.units[5].GetComponent<Unit>().YPos - yPos);
-                    break;
-                }
-                currPlayer.units[i - 1].GetComponent<Unit>().Selected = true;
-                if (currPlayer.units[i - 1].GetComponent<Unit>().IsMoved == true)
-                {
-                    getPrev(numCalled + 1);
-                    getPossibleMovements();
-                    break;
-                }
-                moveSelectedSpace(currPlayer.units[i - 1].GetComponent<Unit>().XPos - xPos, currPlayer.units[i - 1].GetComponent<Unit>().YPos - yPos);
-                Debug.Log(currPlayer.units[i - 1].GetComponent<Unit>().Selected);
-                break;
-            }
-        }
-    }
-
-    void moveSelectedSpace(int xChange, int yChange)
-    {
-        board.selectedSpace.GetComponent<Renderer>().material = Resources.Load("sand_2", typeof(Material)) as Material;
-        xPos += xChange;
-        yPos += yChange;
-
-        if (xPos > 8)
-        {
-            xPos = 8;
-        }
-        if (xPos < 0)
-        {
-            xPos = 0;
-        }
-        if (yPos > 8)
-        {
-            yPos = 8;
-        }
-        if (yPos < 0)
-        {
-            yPos = 0;
-        }
-
-        board.selectedSpace = board.spaces[xPos*9 + yPos];
-        board.selectedSpace.GetComponent<Renderer>().material = Resources.Load("Green", typeof(Material)) as Material;
-        Debug.Log(xPos + ", " + yPos);
-    }
-
-    void getPossibleMovements()
-    {
-        //iterate through to find the selected unit, then move the unit to selected space
-        for (int i = 0; i < NUM_UNITS; i++)
-        {
-            Unit temp = currPlayer.units[i].GetComponent<Unit>();
-            if (temp.Selected == true)
-            {
-                foreach (Space space in board.spaces)
-                {
-                    if (temp.ActionPossible(space, temp.Movement))
-                    {
-                        space.GetComponent<Renderer>().material = Resources.Load("Yellow", typeof(Material)) as Material;
-                    }
-                }
-            }
-        }
-    }
-
-    void endTurn()
-    {
-        Debug.Log("endTurn() called");
-
-        //call game.finishTurn() to handle all the end of turn operations that InputManager doesn't control
-        game.finishTurn();
-
-        //reset turnStarted so that the start of turn code is run for the next player
-        turnStarted = true;
-
-        //Switch the active player to the alternate player
-        if (board.activePlayer == 1)
-        {
-            board.activePlayer = 2;
-        }
-        else
-        {
-            board.activePlayer = 1;
-        }
-    }
-}
+ */
