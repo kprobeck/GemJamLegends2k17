@@ -39,13 +39,11 @@ public class InputManager : MonoBehaviour {
         {
             endTurn();
         }
-
         //check if its player 1's turn
         if (board.activePlayer == 1)
         {
             //set currPlayer to Game Manager's player 1
             currPlayer = game.p1;
-
             //check if Player 1 has no more moves
             for (int i = 0; i < NUM_UNITS; i++)
             {
@@ -62,10 +60,17 @@ public class InputManager : MonoBehaviour {
                 //sets turnStarted to false so this code doesn't run again
                 turnStarted = false;
 
-                //set the selected unit's selected property to true, then move the selected space to the selected unit's space
                 game.p1.units[0].GetComponent<Unit>().Selected = true;
-                getPossibleMovements();
-                moveSelectedSpace(currPlayer.units[0].GetComponent<Unit>().XPos - xPos, currPlayer.units[0].GetComponent<Unit>().YPos - yPos);
+                //set the selected unit's selected property to true, then move the selected space to the selected unit's space
+                if (!game.p1.units[0].GetComponent<Unit>().IsKOed)
+                {
+                    getPossibleMovements();
+                    moveSelectedSpace(currPlayer.units[0].GetComponent<Unit>().XPos - xPos, currPlayer.units[0].GetComponent<Unit>().YPos - yPos);
+                }
+                else
+                {
+                    getNext(0);
+                }
             }
             
             //run the playerTurn() function to handle the input of player 1 
@@ -77,7 +82,6 @@ public class InputManager : MonoBehaviour {
         {
             //set currPlayer to Game Manager's player 2
             currPlayer = game.p2;
-
             //check if Player 2 has no more moves
             for (int i = 0; i < NUM_UNITS; i++)
             {
@@ -96,8 +100,16 @@ public class InputManager : MonoBehaviour {
 
                 //set the selected unit's selected property to true, then move the selected space to the selected unit's space
                 currPlayer.units[0].GetComponent<Unit>().Selected = true;
-                getPossibleMovements();
-                moveSelectedSpace(currPlayer.units[0].GetComponent<Unit>().XPos - xPos, currPlayer.units[0].GetComponent<Unit>().YPos - yPos);
+                //set the selected unit's selected property to true, then move the selected space to the selected unit's space
+                if (!currPlayer.units[0].GetComponent<Unit>().IsKOed)
+                {
+                    getPossibleMovements();
+                    moveSelectedSpace(currPlayer.units[0].GetComponent<Unit>().XPos - xPos, currPlayer.units[0].GetComponent<Unit>().YPos - yPos);
+                }
+                else
+                {
+                    getNext(0);
+                }
             }
 
             //run the playerTurn() function to handle the input of player 2

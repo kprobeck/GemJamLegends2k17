@@ -68,22 +68,22 @@ public class boardManager : MonoBehaviour {
         int x = center.x;
         int y = center.y;
 
-        if (x - 1 > 0)
+        if (x - 1 >= 0)
         {
             parser.Add(spaces[(x-1)*9+y]);
             counter++;
         }
-        if(y - 1 > 0)
+        if(y - 1 >= 0)
         {
             parser.Add(spaces[(x - 0) * 9 + (y - 1)]);
             counter++;
         }
-        if (x + 1 < 8)
+        if (x + 1 <= 8)
         {
             parser.Add(spaces[(x +1) * 9 + (y - 0)]);
             counter++;
         }
-        if (y + 1 < 8)
+        if (y + 1 <= 8)
         {
             parser.Add(spaces[(x + 0) * 9 + (y + 1)]);
             counter++;

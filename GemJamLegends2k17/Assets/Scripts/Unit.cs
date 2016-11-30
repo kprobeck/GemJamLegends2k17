@@ -47,14 +47,14 @@ public class Unit : MonoBehaviour
                 {
                     hp = 4;
                     maxHP = hp;
-                    maxKO = 3;
+                    maxKO = 2;
                     dex = 1;
                 }
                 else
                 {
                     hp = 3;
                     maxHP = hp;
-                    maxKO = 3;
+                    maxKO = 2;
                     dex = 2;
                 }
                 move = 3;
@@ -63,7 +63,7 @@ public class Unit : MonoBehaviour
             case Type.Brute:
                 hp = 6;
                 maxHP = hp;
-                maxKO = 2;
+                maxKO = 1;
                 dex = 1;
                 startingMove = 2;
                 move = 2;
@@ -73,14 +73,14 @@ public class Unit : MonoBehaviour
                 {
                     hp = 3;
                     maxHP = hp;
-                    maxKO = 2;
+                    maxKO = 1;
                     dex = 2;
                 }
                 else
                 {
                     hp = 3;
                     maxHP = hp;
-                    maxKO = 3;
+                    maxKO = 2;
                     dex = 0;
                 }
                 startingMove = 2;
@@ -270,7 +270,7 @@ public class Unit : MonoBehaviour
     //Moves the unit
     public void Move(Space moveSpace)
     {
-        if (!moveSpace.isOccupied && ActionPossible(moveSpace, move))
+        if (!moveSpace.isOccupied && ActionPossible(moveSpace, move) && !isKOed)
         {
             this.currSpace.isOccupied = false;
             this.currSpace.occupier = null;
