@@ -66,6 +66,7 @@ public class InputManager : MonoBehaviour {
 
                 //set the selected unit's selected property to true, then move the selected space to the selected unit's space
                 game.p1.units[0].GetComponent<Unit>().Selected = true;
+                getPossibleMovements();
                 moveSelectedSpace(currPlayer.units[0].GetComponent<Unit>().XPos - xPos, currPlayer.units[0].GetComponent<Unit>().YPos - yPos);
             }
             
@@ -97,6 +98,7 @@ public class InputManager : MonoBehaviour {
 
                 //set the selected unit's selected property to true, then move the selected space to the selected unit's space
                 currPlayer.units[0].GetComponent<Unit>().Selected = true;
+                getPossibleMovements();
                 moveSelectedSpace(currPlayer.units[0].GetComponent<Unit>().XPos - xPos, currPlayer.units[0].GetComponent<Unit>().YPos - yPos);
             }
 
@@ -130,6 +132,7 @@ public class InputManager : MonoBehaviour {
 
             //call getNext() for the first time to select the next unit automatically
             getNext(0);
+            getPossibleMovements();
             Debug.Log(message1 + "1" + message2 + "A");
         }
 
@@ -153,6 +156,7 @@ public class InputManager : MonoBehaviour {
         {
             //call getPrev for the first time, makes the selected unit the previous unit in the unit array
             getPrev(0);
+            getPossibleMovements();
             Debug.Log(message1 + "1" + message2 + "Left Bumper");
         }
 
@@ -161,6 +165,7 @@ public class InputManager : MonoBehaviour {
         {
             //call getNext for the first time, makes the selected unit the next unit in the unit array
             getNext(0);
+            getPossibleMovements();
             Debug.Log(message1 + "1" + message2 + "Right Bumper");
         }
 
@@ -254,6 +259,7 @@ public class InputManager : MonoBehaviour {
 
             //call getNext() for the first time to select the next unit automatically
             getNext(0);
+            getPossibleMovements();
             Debug.Log(message1 + "2" + message2 + "A");
         }
 
@@ -277,6 +283,7 @@ public class InputManager : MonoBehaviour {
         {
             //call getPrev for the first time, makes the selected unit the previous unit in the unit array
             getPrev(0);
+            getPossibleMovements();
             Debug.Log(message1 + "2" + message2 + "Left Bumper");
         }
 
@@ -285,6 +292,7 @@ public class InputManager : MonoBehaviour {
         {
             //call getNext for the first time, makes the selected unit the next unit in the unit array
             getNext(0);
+            getPossibleMovements();
             Debug.Log(message1 + "2" + message2 + "Right Bumper");
         }
 
@@ -385,6 +393,7 @@ public class InputManager : MonoBehaviour {
                     if (currPlayer.units[0].GetComponent<Unit>().IsMoved  == true)
                     {
                         getNext(numCalled + 1);
+                        getPossibleMovements();
                         break;
                     }
 
@@ -400,6 +409,7 @@ public class InputManager : MonoBehaviour {
                 if (currPlayer.units[i + 1].GetComponent<Unit>().IsMoved == true)
                 {
                     getNext(numCalled + 1);
+                    getPossibleMovements();
                     break;
                 }
 
@@ -428,6 +438,7 @@ public class InputManager : MonoBehaviour {
                     if (currPlayer.units[5].GetComponent<Unit>().IsMoved == true)
                     {
                         getPrev(numCalled + 1);
+                        getPossibleMovements();
                         break;
                     }
                     moveSelectedSpace(currPlayer.units[5].GetComponent<Unit>().XPos - xPos, currPlayer.units[5].GetComponent<Unit>().YPos - yPos);
@@ -437,6 +448,7 @@ public class InputManager : MonoBehaviour {
                 if (currPlayer.units[i - 1].GetComponent<Unit>().IsMoved == true)
                 {
                     getPrev(numCalled + 1);
+                    getPossibleMovements();
                     break;
                 }
                 moveSelectedSpace(currPlayer.units[i - 1].GetComponent<Unit>().XPos - xPos, currPlayer.units[i - 1].GetComponent<Unit>().YPos - yPos);
@@ -472,6 +484,25 @@ public class InputManager : MonoBehaviour {
         board.selectedSpace = board.spaces[xPos*9 + yPos];
         board.selectedSpace.GetComponent<Renderer>().material = Resources.Load("Green", typeof(Material)) as Material;
         Debug.Log(xPos + ", " + yPos);
+    }
+
+    void getPossibleMovements()
+    {
+        //iterate through to find the selected unit, then move the unit to selected space
+        for (int i = 0; i < NUM_UNITS; i++)
+        {
+            Unit temp = currPlayer.units[i].GetComponent<Unit>();
+            if (temp.Selected == true)
+            {
+                foreach (Space space in board.spaces)
+                {
+                    if (temp.ActionPossible(space, temp.Movement))
+                    {
+                        space.GetComponent<Renderer>().material = Resources.Load("Yellow", typeof(Material)) as Material;
+                    }
+                }
+            }
+        }
     }
 
     void endTurn()

@@ -26,6 +26,7 @@ public class Unit : MonoBehaviour
     private boardManager board;
     public int team;
     public bool koFlag;
+
     public void CreateUnit(Space starting, Faction group, Type unitType, int t)
     {
         currSpace = starting;
