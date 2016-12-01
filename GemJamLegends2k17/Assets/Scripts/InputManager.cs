@@ -14,12 +14,29 @@ public class InputManager : MonoBehaviour {
     private const int NUM_UNITS = 6;
     private PlayerScript currPlayer;
     private bool turnStarted = true;
+    public Screen currScreen;
+    private Selection currPosition;
+    public GameObject controls;
+    private bool paused = false;
+
+    public enum Screen
+    {
+        Main,
+        Game
+    }
+
+    public enum Selection
+    {
+        Start,
+        Controls,
+        Options
+    }
 
     // Use this for initialization
     void Start () {
         message1 = "The Player ";                               //set message fragments
         message2 = ": Pressed: ";                                //for input debugging
-
+        currPosition = Selection.Start;
         trigDown = false;                                       //makes sure that holding down the trigger doesn't cause constant calls.
         stickInUse = false;                                     //makes sure that holding down the D-Pad doesn't cause constant calls.
         xPos = 0;                                               //sets initial x position
@@ -32,95 +49,188 @@ public class InputManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-        //reset forceEnd to true so that if the player has no more moves, their turn ends
-        forceEnd = true;
-
-        if (Input.GetButtonDown("Jump"))
+        switch (currScreen)
         {
-            endTurn();
-        }
-        //check if its player 1's turn
-        if (board.activePlayer == 1)
-        {
-            //set currPlayer to Game Manager's player 1
-            currPlayer = game.p1;
-            //check if Player 1 has no more moves
-            for (int i = 0; i < NUM_UNITS; i++)
-            {
-                //if a unit hasn't moved, set forceEnd to false so that it doesn't force the end of the player's turn
-                if (game.p1.units[i].GetComponent<Unit>().IsMoved == false)
+            case Screen.Main:
+                if (!paused)
                 {
-                    forceEnd = false;
-                }
-            }
+                    //Xbox then PlayStation
+                    //Actual Buttons
+                    //If you press A or X
+                    if (Input.GetButtonDown("SelectP1"))
+                    {
+          
+                        switch (currPosition)
+                        {
 
-            //runs for if it is player 1's turn to handle their actions
-            if (turnStarted == true)
-            {
-                //sets turnStarted to false so this code doesn't run again
-                turnStarted = false;
+                            case Selection.Start:
+                                Application.LoadLevel("mainScene");
+                                break;
+                            case Selection.Controls:
+                                paused = true;
+                                controls.transform.Translate(new Vector3(0, 0, -2));
+                                break;
+                        }
+                    }
 
-                game.p1.units[0].GetComponent<Unit>().Selected = true;
-                //set the selected unit's selected property to true, then move the selected space to the selected unit's space
-                if (!game.p1.units[0].GetComponent<Unit>().IsKOed)
-                {
-                    getPossibleMovements();
-                    moveSelectedSpace(currPlayer.units[0].GetComponent<Unit>().XPos - xPos, currPlayer.units[0].GetComponent<Unit>().YPos - yPos);
+                    //Axises Inputs (Sticks, DPad, Triggers)
+                    //If you press Left or Right
+                    if (Input.GetAxis("Up/DownP1") != 0 && stickInUse == false)
+                    {
+                        stickInUse = true;
+                        if (Input.GetAxis("Up/DownP1") > 0)
+                        {
+                            switch (currPosition)
+                            {
+                                case Selection.Controls:
+                                    currPosition = Selection.Start;
+                                    game.gem.transform.position = new Vector3(-1.65f, 1.67f, 0.0f);
+                                    break;
+                                case Selection.Options:
+                                    currPosition = Selection.Controls;
+                                    game.gem.transform.position = new Vector3(-2.59f, -1.61f, 0.0f);
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            switch (currPosition)
+                            {
+                                case Selection.Start:
+                                    currPosition = Selection.Controls;
+                                    game.gem.transform.position = new Vector3(-2.59f, -1.61f, 0.0f);
+                                    break;
+                                case Selection.Controls:
+                                    currPosition = Selection.Options;
+                                    game.gem.transform.position = new Vector3(-5.16f, -4.63f, 0.0f);
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+
+                    //check for axises reset
+                    //Left/Right and Up/Down
+                    if (Input.GetAxis("Left/RightP1") == 0 && Input.GetAxis("Up/DownP1") == 0 && stickInUse == true)
+                    {
+                        Debug.Log(message1 + currPlayer.playerNum + ": The stick is ready for new input");
+
+                        //sets stickInUse to false so it is ready to accept new input
+                        stickInUse = false;
+                    
+                    }
                 }
                 else
                 {
-                    getNext(0);
+                    if (Input.GetButtonDown("BackP1"))
+                    {
+                        controls.transform.Translate(new Vector3(0, 0, 2));
+                        paused = false;
+                    }
                 }
-            }
-            
-            //run the playerTurn() function to handle the input of player 1 
-            playerTurn();
+
+                break;
+
+            case Screen.Game:
+                //reset forceEnd to true so that if the player has no more moves, their turn ends
+                forceEnd = true;
+
+                if (Input.GetButtonDown("Jump"))
+                {
+                    endTurn();
+                }
+                //check if its player 1's turn
+                if (board.activePlayer == 1)
+                {
+                    //set currPlayer to Game Manager's player 1
+                    currPlayer = game.p1;
+                    //check if Player 1 has no more moves
+                    for (int i = 0; i < NUM_UNITS; i++)
+                    {
+                        //if a unit hasn't moved, set forceEnd to false so that it doesn't force the end of the player's turn
+                        if (game.p1.units[i].GetComponent<Unit>().IsMoved == false)
+                        {
+                            forceEnd = false;
+                        }
+                    }
+
+                    //runs for if it is player 1's turn to handle their actions
+                    if (turnStarted == true)
+                    {
+                        //sets turnStarted to false so this code doesn't run again
+                        turnStarted = false;
+
+                        game.p1.units[0].GetComponent<Unit>().Selected = true;
+                        //set the selected unit's selected property to true, then move the selected space to the selected unit's space
+                        if (!game.p1.units[0].GetComponent<Unit>().IsKOed)
+                        {
+                            getPossibleMovements();
+                            moveSelectedSpace(currPlayer.units[0].GetComponent<Unit>().XPos - xPos, currPlayer.units[0].GetComponent<Unit>().YPos - yPos);
+                        }
+                        else
+                        {
+                            getNext(0);
+                        }
+                    }
+
+                    //run the playerTurn() function to handle the input of player 1 
+                    playerTurn();
+                }
+
+                //check if its player 1's turn
+                if (board.activePlayer == 2)
+                {
+                    //set currPlayer to Game Manager's player 2
+                    currPlayer = game.p2;
+                    //check if Player 2 has no more moves
+                    for (int i = 0; i < NUM_UNITS; i++)
+                    {
+                        //if a unit hasn't moved, set forceEnd to false so that it doesn't force the end of the player's turn
+                        if (currPlayer.units[i].GetComponent<Unit>().IsMoved == false)
+                        {
+                            forceEnd = false;
+                        }
+                    }
+
+                    //runs for if it is player 2's turn to handle their actions
+                    if (turnStarted == true)
+                    {
+                        //sets turnStarted to false so this code doesn't run again
+                        turnStarted = false;
+
+                        //set the selected unit's selected property to true, then move the selected space to the selected unit's space
+                        currPlayer.units[0].GetComponent<Unit>().Selected = true;
+                        //set the selected unit's selected property to true, then move the selected space to the selected unit's space
+                        if (!currPlayer.units[0].GetComponent<Unit>().IsKOed)
+                        {
+                            getPossibleMovements();
+                            moveSelectedSpace(currPlayer.units[0].GetComponent<Unit>().XPos - xPos, currPlayer.units[0].GetComponent<Unit>().YPos - yPos);
+                        }
+                        else
+                        {
+                            getNext(0);
+                        }
+                    }
+
+                    //run the playerTurn() function to handle the input of player 2
+                    playerTurn();
+                }
+
+                //if the player didn't have a unit still available for action, force their turn to end
+                if (forceEnd)
+                {
+                    endTurn();
+                }
+
+                break;
+            default:
+                break;
         }
 
-        //check if its player 1's turn
-        if (board.activePlayer == 2)
-        {
-            //set currPlayer to Game Manager's player 2
-            currPlayer = game.p2;
-            //check if Player 2 has no more moves
-            for (int i = 0; i < NUM_UNITS; i++)
-            {
-                //if a unit hasn't moved, set forceEnd to false so that it doesn't force the end of the player's turn
-                if (currPlayer.units[i].GetComponent<Unit>().IsMoved == false)
-                {
-                    forceEnd = false;
-                }
-            }
-
-            //runs for if it is player 2's turn to handle their actions
-            if (turnStarted == true)
-            {
-                //sets turnStarted to false so this code doesn't run again
-                turnStarted = false;
-
-                //set the selected unit's selected property to true, then move the selected space to the selected unit's space
-                currPlayer.units[0].GetComponent<Unit>().Selected = true;
-                //set the selected unit's selected property to true, then move the selected space to the selected unit's space
-                if (!currPlayer.units[0].GetComponent<Unit>().IsKOed)
-                {
-                    getPossibleMovements();
-                    moveSelectedSpace(currPlayer.units[0].GetComponent<Unit>().XPos - xPos, currPlayer.units[0].GetComponent<Unit>().YPos - yPos);
-                }
-                else
-                {
-                    getNext(0);
-                }
-            }
-
-            //run the playerTurn() function to handle the input of player 2
-            playerTurn();
-        }
-
-        //if the player didn't have a unit still available for action, force their turn to end
-        if (forceEnd)
-        {
-            endTurn();
-        }
+        
     }
 
     //handles input during either player's turn
@@ -237,7 +347,7 @@ public class InputManager : MonoBehaviour {
         }
 
         //check for axises reset
-        //Left/Right and Left/Right
+        //Left/Right and Up/Down
         if (Input.GetAxis("Left/RightP" + currPlayer.playerNum) == 0 && Input.GetAxis("Up/DownP" + currPlayer.playerNum) == 0 && stickInUse == true)
         {
             Debug.Log(message1  + currPlayer.playerNum + ": The stick is ready for new input");
@@ -368,32 +478,25 @@ public class InputManager : MonoBehaviour {
         //change the entire board to be their natural textures and possible movement textures
         getPossibleMovements();
 
+        //create temp variables to hold prospective new selected space
+        int xTemp = xPos + xChange;
+        int yTemp = yPos + yChange;
 
-        //add the xChange and yChange values to the xPos and yPos values to move the selected space
-        xPos += xChange;
-        yPos += yChange;
+        for(int i = 0; i < 6; i++)
+        {
+            if (currPlayer.units[i].GetComponent<Unit>().Selected)
+            {
+                if(currPlayer.units[i].GetComponent<Unit>().ActionPossible(board.spaces[xTemp * 9 + yTemp], currPlayer.units[i].GetComponent<Unit>().Movement))
+                {
+                    xPos = xTemp;
+                    yPos = yTemp;
 
-        //check if the xPos or yPos is now outside the board and reset to the number before
-        if (xPos > 8)
-        {
-            xPos = 8;
+                    //actually set the selectSpace value to the space at the xPos and yPos
+                    board.selectedSpace = board.spaces[xPos * 9 + yPos];
+                }
+                break;
+            }
         }
-        if (xPos < 0)
-        {
-            xPos = 0;
-        }
-        if (yPos > 8)
-        {
-            yPos = 8;
-        }
-        if (yPos < 0)
-        {
-            yPos = 0;
-        }
-
-        //actually set the selectSpace value to the space at the xPos and yPos
-        board.selectedSpace = board.spaces[xPos*9 + yPos];
-
         //change the texture of the new selectedSpace to be green
         board.selectedSpace.GetComponent<Renderer>().material = Resources.Load("Green", typeof(Material)) as Material;
         Debug.Log(xPos + ", " + yPos);
