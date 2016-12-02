@@ -65,6 +65,7 @@ public class GemScript : MonoBehaviour {
 
                     //Point getter is you
                     holder.GemHeld = false;
+                    holder.gem = null;
                     holder = null;
                     xPos = spawnPoint.getX;
                     yPos = spawnPoint.getY;
@@ -74,8 +75,9 @@ public class GemScript : MonoBehaviour {
                     pos = spawnPoint;
                     isHeld = false;
                     GameObject lGem = Instantiate(Resources.Load("gem") as GameObject, new Vector3(1, 1, 1), new Quaternion(0, 0, 0, 1)) as GameObject;
+                    lGem.tag = "cappedGem";
                     lGem.transform.position = caps[i].transform.position + new Vector3(0,0,-1);
-                    lGem.transform.localScale = new Vector3(0.7f, 0.7f, 0.7f);
+                    lGem.transform.localScale = new Vector3(0.5f, 0.6f, 0.6f);
                     lGem.GetComponent<GemScript>().enabled = false;
                 }
             }

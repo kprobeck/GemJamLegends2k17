@@ -4,7 +4,7 @@ using System.Collections;
 public enum Faction
 {
     FunGuys,
-    SnowMen
+    SnowPatrol
 }
 
 public enum Type
@@ -26,6 +26,7 @@ public class Unit : MonoBehaviour
     private boardManager board;
     public int team;
     public bool koFlag;
+    public GemScript gem;
 
     public void CreateUnit(Space starting, Faction group, Type unitType, int t)
     {
@@ -288,6 +289,31 @@ public class Unit : MonoBehaviour
         }
     }
 
+    public void dropGem()
+    {
+        if(this.isKOed && this.gemHeld)
+        {
+            gemHeld = false;
+            int randomX = Random.Range(-1, 1);
+            int randomY = Random.Range(-1, 1);
+            gem.pos = board.spaces[(gem.pos.getX + randomX) * 9 + (gem.pos.getY + randomY)];
+            board.spaces[(gem.pos.getX + randomX) * 9 + (gem.pos.getY + randomY)].hasGem = true;
+            gem.transform.position = new Vector3(gem.pos.transform.position.x, gem.pos.transform.position.y, -1);
+            //Debug.Log()
+            gem.isHeld = false;
+            gem.holder = null;
+            gem = null;
+        }
+    }
+
+    public void findGemHeld()
+    {
+        if(this.gemHeld)
+        {
+            gem = GameObject.FindGameObjectWithTag("Gem").GetComponent<GemScript>();
+        }
+    }
+
     //Finds adjacent enemies and deals damage to them
     public void Attack()
     {
@@ -456,7 +482,7 @@ public class Unit : MonoBehaviour
                     }
                 }
                 break;
-            case Faction.SnowMen:
+            case Faction.SnowPatrol:
                 if(ActionPossible(selectedSpace, 2) && selectedSpace.isOccupied)
                 {
                     Unit other = selectedSpace.getOccupier.GetComponent<Unit>();
@@ -526,7 +552,7 @@ public class Unit : MonoBehaviour
                     abilityUsed = true;
                 }
                 break;
-            case Faction.SnowMen:
+            case Faction.SnowPatrol:
                 break;
         }
     }
@@ -546,7 +572,7 @@ public class Unit : MonoBehaviour
                     }
                 }
                 break;
-            case Faction.SnowMen:
+            case Faction.SnowPatrol:
                 if(ActionPossible(selectedSpace, 2))
                 {
                     int spaceX = selectedSpace.getX;
@@ -614,7 +640,8 @@ public class Unit : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        dropGem();
+        findGemHeld();
     }
 
     #endregion

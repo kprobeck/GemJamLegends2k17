@@ -18,6 +18,14 @@ public class InputManager : MonoBehaviour {
     private Selection currPosition;
     public GameObject controls;
     private bool paused = false;
+    private Unit selectedUnit;
+
+    public GameObject runFGScreen;
+    public GameObject bruteFGScreen;
+    public GameObject specFGScreen;
+    public GameObject runSPScreen;
+    public GameObject bruteSPScreen;
+    public GameObject specSPScreen;
 
     public enum Screen
     {
@@ -45,6 +53,7 @@ public class InputManager : MonoBehaviour {
         currPlayer = game.p1;                                   //keeps a local reference to the active player's object
         board.selectedSpace = board.spaces[xPos*9 + yPos];      //sets the selected space's data so that it is trackable
         board.selectedSpace.GetComponent<Renderer>().material = Resources.Load("Green", typeof(Material)) as Material;      //sets the selected space's material to a distinct value
+        selectedUnit = currPlayer.units[0].GetComponent<Unit>();
     }
 	
 	// Update is called once per frame
@@ -57,7 +66,7 @@ public class InputManager : MonoBehaviour {
                     //Xbox then PlayStation
                     //Actual Buttons
                     //If you press A or X
-                    if (Input.GetButtonDown("SelectP1"))
+                    if (Input.GetButtonDown("SelectP1") || Input.GetButtonDown("Jump"))
                     {
           
                         switch (currPosition)
@@ -68,7 +77,7 @@ public class InputManager : MonoBehaviour {
                                 break;
                             case Selection.Controls:
                                 paused = true;
-                                controls.transform.Translate(new Vector3(0, 0, -2));
+                                controls.transform.Translate(new Vector3(0, 0, -3));
                                 break;
                         }
                     }
@@ -84,11 +93,11 @@ public class InputManager : MonoBehaviour {
                             {
                                 case Selection.Controls:
                                     currPosition = Selection.Start;
-                                    game.gem.transform.position = new Vector3(-1.65f, 1.67f, 0.0f);
+                                    game.gem.transform.position = new Vector3(-1.65f, 1.67f, -1.0f);
                                     break;
                                 case Selection.Options:
                                     currPosition = Selection.Controls;
-                                    game.gem.transform.position = new Vector3(-2.59f, -1.61f, 0.0f);
+                                    game.gem.transform.position = new Vector3(-2.59f, -1.61f, -1.0f);
                                     break;
                                 default:
                                     break;
@@ -100,11 +109,11 @@ public class InputManager : MonoBehaviour {
                             {
                                 case Selection.Start:
                                     currPosition = Selection.Controls;
-                                    game.gem.transform.position = new Vector3(-2.59f, -1.61f, 0.0f);
+                                    game.gem.transform.position = new Vector3(-2.59f, -1.61f, -1.0f);
                                     break;
                                 case Selection.Controls:
                                     currPosition = Selection.Options;
-                                    game.gem.transform.position = new Vector3(-5.16f, -4.63f, 0.0f);
+                                    game.gem.transform.position = new Vector3(-5.16f, -4.63f, -1.0f);
                                     break;
                                 default:
                                     break;
@@ -127,12 +136,12 @@ public class InputManager : MonoBehaviour {
                 {
                     if (Input.GetButtonDown("BackP1"))
                     {
-                        controls.transform.Translate(new Vector3(0, 0, 2));
+                        controls.transform.Translate(new Vector3(0, 0, 3));
                         paused = false;
                     }
                 }
 
-                break;
+                return;
 
             case Screen.Game:
                 //reset forceEnd to true so that if the player has no more moves, their turn ends
@@ -143,7 +152,7 @@ public class InputManager : MonoBehaviour {
                     endTurn();
                 }
                 //check if its player 1's turn
-                if (board.activePlayer == 1)
+                if (game.currentPlayer == 1)
                 {
                     //set currPlayer to Game Manager's player 1
                     currPlayer = game.p1;
@@ -151,7 +160,7 @@ public class InputManager : MonoBehaviour {
                     for (int i = 0; i < NUM_UNITS; i++)
                     {
                         //if a unit hasn't moved, set forceEnd to false so that it doesn't force the end of the player's turn
-                        if (game.p1.units[i].GetComponent<Unit>().IsMoved == false)
+                        if (currPlayer.units[i].GetComponent<Unit>().IsMoved == false)
                         {
                             forceEnd = false;
                         }
@@ -163,9 +172,12 @@ public class InputManager : MonoBehaviour {
                         //sets turnStarted to false so this code doesn't run again
                         turnStarted = false;
 
-                        game.p1.units[0].GetComponent<Unit>().Selected = true;
                         //set the selected unit's selected property to true, then move the selected space to the selected unit's space
-                        if (!game.p1.units[0].GetComponent<Unit>().IsKOed)
+                        currPlayer.units[0].GetComponent<Unit>().Selected = true;
+                        selectedUnit = currPlayer.units[0].GetComponent<Unit>();
+
+                        //set the selected unit's selected property to true, then move the selected space to the selected unit's space
+                        if (!currPlayer.units[0].GetComponent<Unit>().IsKOed)
                         {
                             getPossibleMovements();
                             moveSelectedSpace(currPlayer.units[0].GetComponent<Unit>().XPos - xPos, currPlayer.units[0].GetComponent<Unit>().YPos - yPos);
@@ -181,7 +193,7 @@ public class InputManager : MonoBehaviour {
                 }
 
                 //check if its player 1's turn
-                if (board.activePlayer == 2)
+                if (game.currentPlayer == 2)
                 {
                     //set currPlayer to Game Manager's player 2
                     currPlayer = game.p2;
@@ -203,6 +215,8 @@ public class InputManager : MonoBehaviour {
 
                         //set the selected unit's selected property to true, then move the selected space to the selected unit's space
                         currPlayer.units[0].GetComponent<Unit>().Selected = true;
+                        selectedUnit = currPlayer.units[0].GetComponent<Unit>();
+
                         //set the selected unit's selected property to true, then move the selected space to the selected unit's space
                         if (!currPlayer.units[0].GetComponent<Unit>().IsKOed)
                         {
@@ -225,7 +239,7 @@ public class InputManager : MonoBehaviour {
                     endTurn();
                 }
 
-                break;
+                return;
             default:
                 break;
         }
@@ -236,133 +250,192 @@ public class InputManager : MonoBehaviour {
     //handles input during either player's turn
     void playerTurn()
     {
-        //Xbox then PlayStation
-        //Actual Buttons
-        //If you press A or X
-        if (Input.GetButtonDown("SelectP" + currPlayer.playerNum))
+        if (!paused)
         {
-            //iterate through to find the selected unit, then move the unit to selected space
-            for (int i = 0; i < NUM_UNITS; i++)
+            //Xbox then PlayStation
+            //Actual Buttons
+            //If you press A or X
+            if (Input.GetButtonDown("SelectP" + currPlayer.playerNum))
             {
-                if (currPlayer.units[i].GetComponent<Unit>().Selected == true)
+                //iterate through to find the selected unit, then move the unit to selected space
+                for (int i = 0; i < NUM_UNITS; i++)
                 {
-                    currPlayer.units[i].GetComponent<Unit>().Move(board.selectedSpace);
+                    if (currPlayer.units[i].GetComponent<Unit>().Selected == true)
+                    {
+                        currPlayer.units[i].GetComponent<Unit>().Move(board.selectedSpace);
+                    }
                 }
+
+                //call getNext() for the first time to select the next unit automatically
+                getNext(0);
+                getPossibleMovements();
+
+                //change the texture of the new selectedSpace to be green
+                board.selectedSpace.GetComponent<Renderer>().material = Resources.Load("Green", typeof(Material)) as Material;
             }
 
-            //call getNext() for the first time to select the next unit automatically
-            getNext(0);
-            getPossibleMovements();
+            //If you press B or Circle
+            if (Input.GetButtonDown("BackP" + currPlayer.playerNum))
+            {
+                //No idea what the B button does as of now
+                Debug.Log(message1 + currPlayer.playerNum + message2 + "B");
+            }
 
-            //change the texture of the new selectedSpace to be green
-            board.selectedSpace.GetComponent<Renderer>().material = Resources.Load("Green", typeof(Material)) as Material;
+            //If you press Y or Triangle
+            if (Input.GetButtonDown("EndP" + currPlayer.playerNum))
+            {
+                //call endTurn() to end the current player's turn
+                Debug.Log(message1 + currPlayer.playerNum + message2 + "Y");
+                endTurn();
+            }
+
+            //If you press Left Bumper or L1
+            if (Input.GetButtonDown("Prev UnitP" + currPlayer.playerNum))
+            {
+                //call getPrev for the first time, makes the selected unit the previous unit in the unit array
+                getPrev(0);
+                getPossibleMovements();
+
+                //change the texture of the new selectedSpace to be green
+                board.selectedSpace.GetComponent<Renderer>().material = Resources.Load("Green", typeof(Material)) as Material;
+            }
+
+            //If you press Right Bumper or R1
+            if (Input.GetButtonDown("Next UnitP" + currPlayer.playerNum))
+            {
+                //call getNext for the first time, makes the selected unit the next unit in the unit array
+                getNext(0);
+                getPossibleMovements();
+
+                //change the texture of the new selectedSpace to be green
+                board.selectedSpace.GetComponent<Renderer>().material = Resources.Load("Green", typeof(Material)) as Material;
+            }
+
+            //If you press Back or Whatever PS calls Back
+            if (Input.GetButtonDown("Game InfoP" + currPlayer.playerNum))
+            {
+                controls.GetComponent<SpriteRenderer>().enabled = true;
+                paused = true;
+                //will display the unit information screen later
+                Debug.Log(message1 + currPlayer.playerNum + message2 + "Back");
+            }
+
+            //If you press Start or Whatever PS calls Start
+            if (Input.GetButtonDown("PauseP" + currPlayer.playerNum))
+            {
+                //will pause the game later
+                Debug.Log(message1 + currPlayer.playerNum + message2 + "Start");
+            }
+
+            //Axises Inputs (Sticks, DPad, Triggers)
+            //If you press Left or Right
+            if (Input.GetAxis("Left/RightP" + currPlayer.playerNum) != 0 && stickInUse == false)
+            {
+                Debug.Log(message1 + currPlayer.playerNum + message2 + "Left /Right");
+
+                //set stickInUse to true so that no other input from the D-Pad can come in until the the D-Pad is released
+                stickInUse = true;
+                Debug.Log("X Value: " + Input.GetAxis("Left/RightP" + currPlayer.playerNum));
+
+                //call moveSelectedSpace so that the selected space moves in the desired direction
+                moveSelectedSpace((int)Input.GetAxis("Left/RightP" + currPlayer.playerNum), 0);
+            }
+
+            //If you press Up or Down
+            if (Input.GetAxis("Up/DownP" + currPlayer.playerNum) != 0 && stickInUse == false)
+            {
+                Debug.Log(message1 + currPlayer.playerNum + message2 + "Up/Down");
+
+                //set stickInUse to true so that no other input from the D-Pad can come in until the the D-Pad is released
+                stickInUse = true;
+                Debug.Log("Y Value: " + Input.GetAxis("Up/DownP" + currPlayer.playerNum));
+
+                //call moveSelectedSpace so that the selected space moves in the desired direction
+                moveSelectedSpace(0, (int)Input.GetAxis("Up/DownP" + currPlayer.playerNum));
+            }
+
+            //If you press Left/Right Trigger or L2/R2
+            if (Input.GetAxis("Char InfoP" + currPlayer.playerNum) != 0 && trigDown == false)
+            {
+                //will display the chatacter's information
+                Debug.Log(message1 + currPlayer.playerNum + ": One or more Triggers down");
+
+                switch (selectedUnit.UType)
+                {
+                    case Type.Runner:
+                        switch (selectedUnit.Fact)
+                        {
+                            case Faction.FunGuys:
+                                runFGScreen.GetComponent<SpriteRenderer>().enabled = true;
+                                break;
+                            case Faction.SnowPatrol:
+                                runSPScreen.GetComponent<SpriteRenderer>().enabled = true;
+                                break;
+                        }
+                        break;
+                    case Type.Brute:
+                        switch (selectedUnit.Fact)
+                        {
+                            case Faction.FunGuys:
+                                bruteFGScreen.GetComponent<SpriteRenderer>().enabled = true;
+                                break;
+                            case Faction.SnowPatrol:
+                                bruteSPScreen.GetComponent<SpriteRenderer>().enabled = true;
+                                break;
+                        }
+                        break;
+                    case Type.Special:
+                        switch (selectedUnit.Fact)
+                        {
+                            case Faction.FunGuys:
+                                specFGScreen.GetComponent<SpriteRenderer>().enabled = true;
+                                break;
+                            case Faction.SnowPatrol:
+                                specSPScreen.GetComponent<SpriteRenderer>().enabled = true;
+                                break;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+
+
+
+                //set trigDown to true so that no other input from the triggers can come in until the the trigger is released
+                trigDown = true;
+            }
+
+            //check for axises reset
+            //Left/Right and Up/Down
+            if (Input.GetAxis("Left/RightP" + currPlayer.playerNum) == 0 && Input.GetAxis("Up/DownP" + currPlayer.playerNum) == 0 && stickInUse == true)
+            {
+                Debug.Log(message1 + currPlayer.playerNum + ": The stick is ready for new input");
+
+                //sets stickInUse to false so it is ready to accept new input
+                stickInUse = false;
+            }
+
+            //Triggers
+            if (Input.GetAxis("Char InfoP" + currPlayer.playerNum) == 0 && trigDown == true)
+            {
+                Debug.Log(message1 + currPlayer.playerNum + ": Triggers ready for new input");
+
+                hideScreens();
+
+                //sets trigDown to false so it is ready to accept new input
+                trigDown = false;
+            }
         }
-
-        //If you press B or Circle
-        if (Input.GetButtonDown("BackP" + currPlayer.playerNum))
+        else
         {
-            //No idea what the B button does as of now
-            Debug.Log(message1 + currPlayer.playerNum + message2 + "B");
-        }
-
-        //If you press Y or Triangle
-        if (Input.GetButtonDown("EndP" + currPlayer.playerNum))
-        {
-            //call endTurn() to end the current player's turn
-            Debug.Log(message1 + currPlayer.playerNum + message2 + "Y");
-            endTurn();
-        }
-
-        //If you press Left Bumper or L1
-        if (Input.GetButtonDown("Prev UnitP" + currPlayer.playerNum))
-        {
-            //call getPrev for the first time, makes the selected unit the previous unit in the unit array
-            getPrev(0);
-            getPossibleMovements();
-
-            //change the texture of the new selectedSpace to be green
-            board.selectedSpace.GetComponent<Renderer>().material = Resources.Load("Green", typeof(Material)) as Material;
-        }
-
-        //If you press Right Bumper or R1
-        if (Input.GetButtonDown("Next UnitP" + currPlayer.playerNum))
-        {
-            //call getNext for the first time, makes the selected unit the next unit in the unit array
-            getNext(0);
-            getPossibleMovements();
-
-            //change the texture of the new selectedSpace to be green
-            board.selectedSpace.GetComponent<Renderer>().material = Resources.Load("Green", typeof(Material)) as Material;
-        }
-
-        //If you press Back or Whatever PS calls Back
-        if (Input.GetButtonDown("Game InfoP" + currPlayer.playerNum))
-        {
-            //will display the unit information screen later
-            Debug.Log(message1 + currPlayer.playerNum + message2 + "Back");
-        }
-
-        //If you press Start or Whatever PS calls Start
-        if (Input.GetButtonDown("PauseP" + currPlayer.playerNum))
-        {
-            //will pause the game later
-            Debug.Log(message1 + currPlayer.playerNum + message2 + "Start");
-        }
-
-        //Axises Inputs (Sticks, DPad, Triggers)
-        //If you press Left or Right
-        if (Input.GetAxis("Left/RightP" + currPlayer.playerNum) != 0 && stickInUse == false)
-        {
-            Debug.Log(message1 + currPlayer.playerNum + message2 + "Left /Right");
-
-            //set stickInUse to true so that no other input from the D-Pad can come in until the the D-Pad is released
-            stickInUse = true;
-            Debug.Log("X Value: " + Input.GetAxis("Left/RightP" + currPlayer.playerNum));
-
-            //call moveSelectedSpace so that the selected space moves in the desired direction
-            moveSelectedSpace((int)Input.GetAxis("Left/RightP" + currPlayer.playerNum), 0);
-        }
-
-        //If you press Up or Down
-        if (Input.GetAxis("Up/DownP" + currPlayer.playerNum) != 0 && stickInUse == false)
-        {
-            Debug.Log(message1 + currPlayer.playerNum + message2 + "Up /Down");
-
-            //set stickInUse to true so that no other input from the D-Pad can come in until the the D-Pad is released
-            stickInUse = true;
-            Debug.Log("Y Value: " + Input.GetAxis("Up/DownP" + currPlayer.playerNum));
-
-            //call moveSelectedSpace so that the selected space moves in the desired direction
-            moveSelectedSpace(0, (int)Input.GetAxis("Up/DownP" + currPlayer.playerNum));
-        }
-
-        //If you press Left/Right Trigger or L2/R2
-        if (Input.GetAxis("Char InfoP" + currPlayer.playerNum) != 0 && trigDown == false)
-        {
-            //will display the chatacter's information
-            Debug.Log(message1 + currPlayer.playerNum + ": One or more Triggers down");
-
-            //set trigDown to true so that no other input from the triggers can come in until the the trigger is released
-            trigDown = true;
-        }
-
-        //check for axises reset
-        //Left/Right and Up/Down
-        if (Input.GetAxis("Left/RightP" + currPlayer.playerNum) == 0 && Input.GetAxis("Up/DownP" + currPlayer.playerNum) == 0 && stickInUse == true)
-        {
-            Debug.Log(message1  + currPlayer.playerNum + ": The stick is ready for new input");
-
-            //sets stickInUse to false so it is ready to accept new input
-            stickInUse = false;
-        }
-
-        //Triggers
-        if (Input.GetAxis("Char InfoP" + currPlayer.playerNum) == 0 && trigDown == true)
-        {
-            Debug.Log(message1 + currPlayer.playerNum + ": Triggers ready for new input");
-
-            //sets trigDown to false so it is ready to accept new input
-            trigDown = false;
+            //If you press Back or Whatever PS calls Back
+            if (Input.GetButtonDown("Game InfoP" + currPlayer.playerNum))
+            {
+                hideScreens();
+                paused = false;
+                //will display the unit information screen later
+                Debug.Log(message1 + currPlayer.playerNum + message2 + "Back");
+            }
         }
     }
 
@@ -387,6 +460,7 @@ public class InputManager : MonoBehaviour {
                 {
                     //set the first unit's selected value to true
                     currPlayer.units[0].GetComponent<Unit>().Selected = true;
+                    selectedUnit = currPlayer.units[0].GetComponent<Unit>();
 
                     //if the first unit has already been used, enter a recursive loop to find the next unit that hasn't been moved, then break out
                     if (currPlayer.units[0].GetComponent<Unit>().IsMoved  == true)
@@ -403,6 +477,7 @@ public class InputManager : MonoBehaviour {
 
                 //if it's not the last, just set the next unit's selected value to true
                 currPlayer.units[i + 1].GetComponent<Unit>().Selected = true;
+                selectedUnit = currPlayer.units[i + 1].GetComponent<Unit>();
 
                 //if the next unit has already been used, enter a recursive loop to find the next unit that hasn't been moved, then break out
                 if (currPlayer.units[i + 1].GetComponent<Unit>().IsMoved == true)
@@ -441,6 +516,7 @@ public class InputManager : MonoBehaviour {
                 {
                     //set the last unit in the array to have a selected value of true
                     currPlayer.units[5].GetComponent<Unit>().Selected = true;
+                    selectedUnit = currPlayer.units[5].GetComponent<Unit>();
 
                     //if the last unit has already been used, enter a recursive loop to find the previous unit that hasn't been moved, then break out
                     if (currPlayer.units[5].GetComponent<Unit>().IsMoved == true)
@@ -457,6 +533,7 @@ public class InputManager : MonoBehaviour {
 
                 //if it's not the last, just set the next unit's selected value to true
                 currPlayer.units[i - 1].GetComponent<Unit>().Selected = true;
+                selectedUnit = currPlayer.units[i - 1].GetComponent<Unit>();
 
                 //if the previous unit has already been used, enter a recursive loop to find the next unit that hasn't been moved, then break out
                 if (currPlayer.units[i - 1].GetComponent<Unit>().IsMoved == true)
@@ -486,13 +563,16 @@ public class InputManager : MonoBehaviour {
         {
             if (currPlayer.units[i].GetComponent<Unit>().Selected)
             {
-                if(currPlayer.units[i].GetComponent<Unit>().ActionPossible(board.spaces[xTemp * 9 + yTemp], currPlayer.units[i].GetComponent<Unit>().Movement))
+                if ((xTemp >= 0 && xTemp < 9) && (yTemp >= 0 && yTemp < 9))
                 {
-                    xPos = xTemp;
-                    yPos = yTemp;
+                    if (currPlayer.units[i].GetComponent<Unit>().ActionPossible(board.spaces[xTemp * 9 + yTemp], currPlayer.units[i].GetComponent<Unit>().Movement))
+                    {
+                        xPos = xTemp;
+                        yPos = yTemp;
 
-                    //actually set the selectSpace value to the space at the xPos and yPos
-                    board.selectedSpace = board.spaces[xPos * 9 + yPos];
+                        //actually set the selectSpace value to the space at the xPos and yPos
+                        board.selectedSpace = board.spaces[xPos * 9 + yPos];
+                    }
                 }
                 break;
             }
@@ -533,6 +613,17 @@ public class InputManager : MonoBehaviour {
                 }
             }
         }
+    }
+
+    void hideScreens()
+    {
+        runFGScreen.GetComponent<SpriteRenderer>().enabled = false;
+        bruteFGScreen.GetComponent<SpriteRenderer>().enabled = false;
+        specFGScreen.GetComponent<SpriteRenderer>().enabled = false;
+        runSPScreen.GetComponent<SpriteRenderer>().enabled = false;
+        bruteSPScreen.GetComponent<SpriteRenderer>().enabled = false;
+        specSPScreen.GetComponent<SpriteRenderer>().enabled = false;
+        controls.GetComponent<SpriteRenderer>().enabled = false;
     }
 
     void endTurn()
