@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System.Collections;
 
 public class InputManager : MonoBehaviour {
@@ -26,7 +27,10 @@ public class InputManager : MonoBehaviour {
     public GameObject runSPScreen;
     public GameObject bruteSPScreen;
     public GameObject specSPScreen;
-
+    public Text HealthText;
+    public Text TurnText;
+    private Vector3 healthStartPos;
+    private Vector3 turnStartPos;
     public enum Screen
     {
         Main,
@@ -54,7 +58,9 @@ public class InputManager : MonoBehaviour {
         board.selectedSpace = board.spaces[xPos*9 + yPos];      //sets the selected space's data so that it is trackable
         board.selectedSpace.GetComponent<Renderer>().material = Resources.Load("Green", typeof(Material)) as Material;      //sets the selected space's material to a distinct value
         selectedUnit = currPlayer.units[0].GetComponent<Unit>();
-    }
+        healthStartPos = HealthText.transform.position;
+        turnStartPos = TurnText.transform.position;
+}
 	
 	// Update is called once per frame
 	void Update () {
@@ -156,6 +162,7 @@ public class InputManager : MonoBehaviour {
                 {
                     //set currPlayer to Game Manager's player 1
                     currPlayer = game.p1;
+                    TurnText.text = "FunGuys";
                     //check if Player 1 has no more moves
                     for (int i = 0; i < NUM_UNITS; i++)
                     {
@@ -175,7 +182,7 @@ public class InputManager : MonoBehaviour {
                         //set the selected unit's selected property to true, then move the selected space to the selected unit's space
                         currPlayer.units[0].GetComponent<Unit>().Selected = true;
                         selectedUnit = currPlayer.units[0].GetComponent<Unit>();
-
+                        HealthText.text = selectedUnit.GetComponent<Unit>().hp.ToString();
                         //set the selected unit's selected property to true, then move the selected space to the selected unit's space
                         if (!currPlayer.units[0].GetComponent<Unit>().IsKOed)
                         {
@@ -186,6 +193,7 @@ public class InputManager : MonoBehaviour {
                         {
                             getNext(0);
                         }
+
                     }
 
                     //run the playerTurn() function to handle the input of player 1 
@@ -197,6 +205,7 @@ public class InputManager : MonoBehaviour {
                 {
                     //set currPlayer to Game Manager's player 2
                     currPlayer = game.p2;
+                    TurnText.text = "Snow Patrol";
                     //check if Player 2 has no more moves
                     for (int i = 0; i < NUM_UNITS; i++)
                     {
@@ -216,7 +225,7 @@ public class InputManager : MonoBehaviour {
                         //set the selected unit's selected property to true, then move the selected space to the selected unit's space
                         currPlayer.units[0].GetComponent<Unit>().Selected = true;
                         selectedUnit = currPlayer.units[0].GetComponent<Unit>();
-
+                        HealthText.text = selectedUnit.GetComponent<Unit>().hp.ToString();
                         //set the selected unit's selected property to true, then move the selected space to the selected unit's space
                         if (!currPlayer.units[0].GetComponent<Unit>().IsKOed)
                         {
@@ -359,7 +368,8 @@ public class InputManager : MonoBehaviour {
             {
                 //will display the chatacter's information
                 Debug.Log(message1 + currPlayer.playerNum + ": One or more Triggers down");
-
+                HealthText.transform.position += new Vector3(0, 1000, 0);
+                TurnText.transform.position += new Vector3(0, 1000, 0);
                 switch (selectedUnit.UType)
                 {
                     case Type.Runner:
@@ -400,11 +410,14 @@ public class InputManager : MonoBehaviour {
                 }
 
 
-
                 //set trigDown to true so that no other input from the triggers can come in until the the trigger is released
                 trigDown = true;
             }
-
+            else if(trigDown == false)
+            {
+                HealthText.transform.position = healthStartPos;
+                TurnText.transform.position = turnStartPos;
+            }
             //check for axises reset
             //Left/Right and Up/Down
             if (Input.GetAxis("Left/RightP" + currPlayer.playerNum) == 0 && Input.GetAxis("Up/DownP" + currPlayer.playerNum) == 0 && stickInUse == true)
@@ -478,7 +491,7 @@ public class InputManager : MonoBehaviour {
                 //if it's not the last, just set the next unit's selected value to true
                 currPlayer.units[i + 1].GetComponent<Unit>().Selected = true;
                 selectedUnit = currPlayer.units[i + 1].GetComponent<Unit>();
-
+                HealthText.text = selectedUnit.GetComponent<Unit>().hp.ToString();
                 //if the next unit has already been used, enter a recursive loop to find the next unit that hasn't been moved, then break out
                 if (currPlayer.units[i + 1].GetComponent<Unit>().IsMoved == true)
                 {

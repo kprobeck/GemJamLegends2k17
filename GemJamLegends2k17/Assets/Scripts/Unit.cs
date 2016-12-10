@@ -333,7 +333,7 @@ public class Unit : MonoBehaviour
         if (hp <= 0)
         {
               isKOed = true;
-            this.transform.rotation = new Quaternion(0, 0, 0.3f, 1);
+            this.transform.rotation = new Quaternion(0, 0, 0.7f, 1);
           //  koFlag = true;
             if(gemHeld)
             {
