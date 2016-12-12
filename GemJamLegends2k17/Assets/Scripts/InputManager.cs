@@ -323,10 +323,17 @@ public class InputManager : MonoBehaviour {
             //If you press Back or Whatever PS calls Back
             if (Input.GetButtonDown("Game InfoP" + currPlayer.playerNum))
             {
+                HealthText.transform.position = new Vector3(0, 1000, 0);
+                TurnText.transform.position = new Vector3(0, 1000, 0);
                 controls.GetComponent<SpriteRenderer>().enabled = true;
                 paused = true;
                 //will display the unit information screen later
                 Debug.Log(message1 + currPlayer.playerNum + message2 + "Back");
+            }
+            else if((Input.GetButtonUp("Game InfoP" + currPlayer.playerNum)) || (trigDown == false))
+            {
+                HealthText.transform.position = healthStartPos;
+                TurnText.transform.position = turnStartPos;
             }
 
             //If you press Start or Whatever PS calls Start
@@ -413,11 +420,11 @@ public class InputManager : MonoBehaviour {
                 //set trigDown to true so that no other input from the triggers can come in until the the trigger is released
                 trigDown = true;
             }
-            else if(trigDown == false)
-            {
-                HealthText.transform.position = healthStartPos;
-                TurnText.transform.position = turnStartPos;
-            }
+            //else if(trigDown == false)
+            //{
+            //    HealthText.transform.position = healthStartPos;
+            //    TurnText.transform.position = turnStartPos;
+            //}
             //check for axises reset
             //Left/Right and Up/Down
             if (Input.GetAxis("Left/RightP" + currPlayer.playerNum) == 0 && Input.GetAxis("Up/DownP" + currPlayer.playerNum) == 0 && stickInUse == true)
